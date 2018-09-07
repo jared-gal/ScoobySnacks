@@ -84,7 +84,7 @@
                 <p> <b> <big>Mapping the Potentiometer Value:</big></b> </p>
                 <p> <b> To an LED:</b></p>
                 <p>The first stage of the potentiometer mapping was to wire the external circuit appropriately. The circuit consisted of a potentiometer acting as a voltage divider of 5V, an Arduino wired such that the node in the middle of our basic voltage divider ran to an analog input, and an LED wired such that its positive terminal (long leg) was connected to a PWM pin on the Arduino and the cathode had a path to ground (with a 330Ω resistor in series).</p>
-                <div align = "middle"><p> INSERT IMAGE </p></div>
+                <div align = "middle"><img  src="img/Lab1_LED.jpg" alt=""></div>
                 <div align = "middle"><p><small>LED Wiring Diagram</small></p></div>
                 <p>The potentiometer to LED brightness mapping was handled in software by employing three specific Arduino functions. The first function was analogRead, which allowed the voltage to be read from the middle of the potentiometer voltage divider. The read value was bounded between 0 and 1024 as observed through displaying the read values on the serial monitor. The next function employed was map, which allowed the value read by the analogRead portion to easily be mapped from its original 0 to 1024 range to a 0 to 255 range. A PWM signal only has 8 bits of control, which is why we chose this mapping to synthesize the signal using analogWrite. The aforementioned signal was then used to power the LED creating either a brighter or dimmer appearance based on the duty cycle.
                 </p>
@@ -92,7 +92,7 @@
                 <p> <b> To the Servo Motor:</b></p>
                 <p> The process of mapping the potentiometer to the LED was the basis for what then became the structure to map the potentiometer to the servo motor. However, several significant changes where made. The first of which was that a new circuit had to be created for the servo motor. The potentiometer and analog input wiring remained the same, but instead of the LED part of the circuitry, a single pin of the Arduino was run to the servo in order to give it rotational information.
                 </p>
-                <div align = "middle"><p>INSER IMAGE</p></div>
+                <div align = "middle"><img  src="img/Lab1_Servo.jpg" alt=""></div>
                 <div align = "middle"><p><small>Servo Wiring Diagram</small></p></div>
                 <p> The primary software change was that instead of using the PWM signal to drive a circuit component, the Servo library within Arduino was used to command the servo motor’s position. Much the same as before, the potentiometer was read, and the value was mapped, but this time it was set to a range of 0 to 180. The specified range worked as follows: 0 would be full speed rotation of the servo in one direction, 90 would be a complete stop, and 180 would be full speed rotation in the opposite direction. As a part of the Servo library, one pin was declared to be for the servo, and then the only control was to set a value to the pin, specifically the remapped value of our potentiometer. </p>
                 <div align = "middle"  style="position:relative;height:0;padding-bottom:75.0%"><iframe src="https://www.youtube.com/embed/72RktDYk-6s?ecver=2" width="360" height="240" frameborder="0" allow="autoplay; encrypted-media" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
