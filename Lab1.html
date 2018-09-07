@@ -65,7 +65,24 @@
               <h2 class="section-heading mb-5">
                 <span class="section-heading-upper">Lab Report 1</span>
               </h2>
-              <p> David Pirogovsky, Dylan Neal, Jared Gallina, Larry Tang </p>
+              <p> <i>David Pirogovsky, Dylan Neal, Jared Gallina, Larry Tang</i> </p>
+              <div id = "content" align = "left">
+                <p> <b> <big>Intro:</big></b> </p>
+                <p>The goal of this lab was to get familiarized with the Arduino Uno, a simple microcontroller, and some of its peripherals that will be used throughout the course. 
+                </p>
+                <p></p>
+                <p> <b> <big>Blinking an LED:</big></b> </p>
+                <p><b> Internal:</b></p>
+                <p>Blinking the internal LED started with loading the board with the Arduino example code called “Blink.” In the example code there are two sections: setup() and loop(). Setup() simply contained the code necessary to set the internal LED (LED_BUILTIN) as an output. </p>
+                <p> Next, the loop() section contained the code responsible for toggling the LED on and off. It was simply one line of code that set the internal LED to high, a one second delay, a line of code that set the LED to low, then another delay.</p>
+                <p> <b> External:</b></p>
+                <p>Blinking an external LED needed only slight modification from the example code. First, a pin needed to be defined to use for the LED. This was done with one short statement at the very top of the program. After that was done, the defined led could be set as an output in the setup() portion of the program instead of the built in LED used for the previous section. The program was finished when the loop() section was updated with the new LED instead of the internal one similarly to the setup() section.</p>
+                <div style="position:relative;height:0;padding-bottom:75.0%"><iframe src="https://www.youtube.com/embed/JqKBFHn24KQ?ecver=2" width="360" height="240" frameborder="0" allow="autoplay; encrypted-media" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
+                <p><small><i>Blinking LED Video</i></small></p>
+                <p> <b> <big>Reading the Potentiometer:</big></b> </p>
+                <p>In order to read the value of the potentiometer through a serial port, we needed to use the analog input pins, which are connected to an Analog to Digital Converter (ADC) to provide the chip a 10 bit digital reading. The potentiometer has three pins. The two end pins should be connected to Vdd (High voltage) and ground, and the middle pin should be connected to one of the analog pins. In the code, this can be read by declaring the pin connected to the potentiometer as an input. This pin should then be defined as an analog input, and then an analogRead can be performed in order to find the value. The serial monitor can be opened by clicking the magnifying glass in the arduino IDE, and can be written to with Serial.print().</p>
+                
+              </div>
             </div>
           </div>
         </div>
@@ -86,8 +103,6 @@
   </body>
 
   <!-- Script to highlight the active date in the hours list -->
-  <script>
-    $('.list-hours li').eq(new Date().getDay()).addClass('today');
-  </script>
+
 
 </html>
