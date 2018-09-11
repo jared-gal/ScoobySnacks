@@ -32,8 +32,11 @@ volatile int SENSOR0_READING;
 volatile int SENSOR1_READING;
 
 //offsets that will be applied to avg the sensor reading
-int Sensor0_Offset = 0;
-int Sensor1_Offset = 0;
+volatile int numReadings0 = 0;
+volatile int numReadings1 = 0;
+volatile int Sensor0_Offset = 0;
+volatile int Sensor1_Offset = 0;
+const int calibrate = 1000;
 
 // A digital write is required to trigger a sensor reading.
 void setup_sensor(int pin, long *sensor_timer) {
@@ -80,32 +83,56 @@ void move_cw(Servo servo, int speed){
 void SENSOR0_ISR() {
   // The sensor light reading is inversely proportional to the time taken
   // for the pin to fall from high to low. Lower values mean lighter colors.
-  SENSOR0_READING = micros() - SENSOR0_TIMER - Sensor0_Offset;
-  // turn right from line
-  Serial.print(SENSOR0_READING);
-  delay(1000);
-  if(SENSOR0_READING < 0) {
-    Serial.println("[ Turning right ]");
-    move_ccw(myServo1, 0);
-    move_ccw(myServo2, 100);
-    delay(650); // 2 sec
+  if (numReadings0 < calibrate) {
+      Sensor0_Offset += micros() - SENSOR0_TIMER;
+      setup_sensor(SENSOR0_PIN, &SENSOR0_TIMER);
+      numReadings0++;
   }
-  // Reset the sensor for another reading
-  setup_sensor(SENSOR0_PIN, &SENSOR0_TIMER);
+  else if (numReadings0 == calibrate) {
+      Sensor0_Offset = Sensor0_Offset/calibrate;
+      setup_sensor(SENSOR0_PIN, &SENSOR0_TIMER);
+      numReadings0++; // don't increment after this so that overflow doesn't occur
+  }
+  else {
+      SENSOR0_READING = micros() - SENSOR0_TIMER - Sensor0_Offset;
+      // turn right from line
+      Serial.print(SENSOR0_READING);
+      delay(1000);
+      if(SENSOR0_READING < 0) {
+        Serial.println("[ Turning right ]");
+        move_ccw(myServo1, 0);
+        move_ccw(myServo2, 100);
+        delay(650); // 2 sec
+      }
+      // Reset the sensor for another reading
+      setup_sensor(SENSOR0_PIN, &SENSOR0_TIMER);
+  }
 }
 
 void SENSOR1_ISR() {
-  SENSOR1_READING = micros() - SENSOR1_TIMER - Sensor1_Offset;
-  //turn left from line
-  Serial.print(SENSOR1_READING);
-  delay(1000);
-  if(SENSOR1_READING < 0) {
-    Serial.println("[ Turning left ]");
-    move_ccw(myServo1, 100);
-    move_ccw(myServo2, 0);
-    delay(650); // 2 sec
+  if (numReadings1 < calibrate) {
+      Sensor1_Offset += micros() - SENSOR1_TIMER;
+      setup_sensor(SENSOR1_PIN, &SENSOR1_TIMER);
+      numReadings1++;
   }
-  setup_sensor(SENSOR1_PIN, &SENSOR1_TIMER);
+  else if (numReadings1 == calibrate) {
+      Sensor1_Offset = Sensor1_Offset/calibrate;
+      setup_sensor(SENSOR1_PIN, &SENSOR1_TIMER);
+      numReadings1++; // don't increment after this so that overflow doesn't occur
+  }
+  else {
+      SENSOR1_READING = micros() - SENSOR1_TIMER - Sensor1_Offset;
+      //turn left from line
+      Serial.print(SENSOR1_READING);
+      delay(1000);
+      if(SENSOR1_READING < 0) {
+        Serial.println("[ Turning left ]");
+        move_ccw(myServo1, 100);
+        move_ccw(myServo2, 0);
+        delay(650); // 2 sec
+      }
+      setup_sensor(SENSOR1_PIN, &SENSOR1_TIMER);
+  }
 }
 
 void setup() {
@@ -115,7 +142,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Starting Servos Arduino");
   
-  averageLineSensor(SENSOR0_PIN);
+  //averageLineSensor(SENSOR0_PIN);
   Serial.print("Done Averaging");
   // Tell the compiler which pin to associate with which ISR
   attachInterrupt(digitalPinToInterrupt(SENSOR0_PIN), SENSOR0_ISR, LOW);
@@ -154,18 +181,20 @@ void figureEight() {
 
 void loop() {
   // These delays are purely for ease of reading.
-  Serial.println("Sensor 0");
-  Serial.println(SENSOR0_READING);
-  delay(500);
+  if ((numReadings1 > calibrate) && (numReadings0 > calibrate)) {
+      Serial.println("Sensor 0");
+      Serial.println(SENSOR0_READING);
+      delay(500);
 
-  Serial.println("[ Straight 1 ]");
-  move_cw(myServo1, 50);
-  move_ccw(myServo2, 50);
-  delay(1000); // 1 sec
+      Serial.println("[ Straight 1 ]");
+      move_cw(myServo1, 50);
+      move_ccw(myServo2, 50);
+      delay(1000); // 1 sec
 
-  //figureEight();
- 
-  /*Serial.println("Sensor 1");
-  Serial.println(SENSOR1_READING);
-  delay(100);*/
+      //figureEight();
+
+      /*Serial.println("Sensor 1");
+      Serial.println(SENSOR1_READING);
+      delay(100);*/
+  }
 }
