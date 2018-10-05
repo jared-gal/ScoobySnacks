@@ -70,12 +70,22 @@
                 <p> <b> <big>Intro:</big></b> </p>
                 <p>The goal of this lab was to employ filtering to be able to detect IR signals of other robots in the maze and determine when the appropriate tone has been played to begin maze tracing. 
                 </p>
-                <p> FULL REPORT COMING SOON</p>
                 <p> <b> <big>Detecting the IR Signal:</big></b> </p>
-                <p><b> </b></p>
-                <p> </p>
-                <p> </p>
-                <div align = "middle"><p><small><i>Video</i></small></p></div>
+                <p><b>In order to amplify and filter the signal, we built a non-inverting amplifier using the LM358 chip, with about six times gain, as R1 was 1 kΩ and R2 was 5.1 kΩ. We built a low pass filter on the output using a 330 Ω resistor and a 68 nF cap. Initially, the op amp had just a dc output, because the phototransistor had too high an impedance and the op amp was receiving a small AC signal at a nearly 5 volt offset. To account for this, we attached the negative leg of the phototransistor -- which was initially grounded -- to the positive input of the op amp, and attached a 10 kΩ resistor to ground, to force the AC signal to be more comfortably within the 0-5 Volt range. This way, when the phototransistor was getting more signal, its impedance would drop and the voltage at the input would increase. The low pass filter on the output has a cutoff frequency of approximately 7100 Hz, which allows the 6 kHz signal to pass comfortably through, untouched, but should reduce the magnitude of the 18 kHz decoys by 11 dB. This means that if the value of a nearby robot should be the largest peak by far when it is within a range that it needs to be avoided at.
+                </b></p>
+                <div align = "middle"><img  src="img/Lab2_IRCircuit.jpg" alt=""></div>
+                <p> The algorithm started with testing the fft_adc_serial example code. After verifying that the code worked as intended a MATLAB script was developed in order to see the output of the code in real time so that it could be debugged.  The MATLAB script started similar to the recommended script in the lab 2 handout except with the notable change of the baudrate from the recommended 9600 to 115200 as the example arduino script used the latter baudrate. After that the script needed to be edited in order to plot the results in real time. An if statement nested in a while loop was all that was needed to display the data. 
+                </p>
+                <div align = "middle"><img  src="img/lab2_IRCode_1.jpg" alt=""></div>
+                <p> The initialized variables were the serial port, the string that would keep the serial port data (str), the numeric conversions of the serial port data (sen), the data to be plotted (accX), and the loop variables. Within the while loop a few things needed to be done before the if statement. The variable str had to be set to the data from the serial port. Then sen was set to the data converted to a number. The two variables accX and x are the data to be plotted and the length of the plot. They depended on the loop variable j.
+                </p>
+                <div align = "middle"><img  src="img/lab2_IRCode_2.jpg" alt=""></div>
+                <p> The if statement was responsible for adjusting the size of the real time plot. It would display 200 data points. The variable x1 would ultimately serve as the current x value of the plot. accX1 was the y axis. Note that the variables ranged from j-200:j when j > 200 and the variables were simply assigned to the initiated values when j < 200. This is so that the graph wouldn’t stretch as it plotted. The rest of the while loop was very straightforward. It simply plotted x1 and accX1, set the axis and incremented the loop variable (j).
+                </p>
+                <p> Lastly, the example code was edited in order to detect the correct frequency. At the end of the code 2 more variables were created called maximum and ind. Another for loop was created that was identical to the previous one except that i was initialized to 10 to avoid the noise at the beginning of the sample. Within it it would set maximum such that it would be the highest value of the fft_log_out array, and it would set ind as the index of the maximum value. The amplifier and sensor was hooked up to the circuit, and it was tested.
+                </p>
+                <div align = "middle"><img  src="img/lab2_IRCode_3.jpg" alt=""></div>
+                <p> It turned out that the index of the 6kHz signal was in bin 41. By knowing when bin 41 had the maximum signal, we could know exactly when the signal was detected.</p> 
                 <p> <b> <big>Detecting the 660 Hz Tone:</big></b> </p>
                 <p></p>
                 <p> <b> <big></big></b> </p>
