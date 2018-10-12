@@ -21,8 +21,8 @@ const int DIST = A1;
 const int SERVO1 = A4;
 const int SERVO2 = A5;
 
-#define SENSOR0_PIN 2
-#define SENSOR1_PIN 3
+#define SENSOR0_PIN 2 // right
+#define SENSOR1_PIN 3 // left
 
 Servo myServo0;
 Servo myServo1;
@@ -37,7 +37,8 @@ volatile int s1_read;
 
 int thresh0 = 500;
 int thresh1 = 200;
-int thresh_wall = 200;
+int thresh_wall = 150;
+int thresh_ir = 80;
 
 //Code for the QRE1113 Digital board
 //Outputs via the serial terminal – Lower numbers mean more reflected
@@ -69,6 +70,11 @@ void move_ccw(Servo servo, int speed) {
   servo.write(speed+90);
 }
 
+void stopMoving() {
+  move_cw(myServo0, 0);
+  move_cw(myServo1, 0);
+}
+
 void goStraight() {
   move_cw(myServo0, 5);
   move_ccw(myServo1, 5);
@@ -85,18 +91,68 @@ void corRight() {
 }
 
 void turnLeft() {
-  move_cw(myServo0, 5);
-  move_cw(myServo1, 0);
-  delay(1950);
-  move_cw(myServo0, 0);
-  move_cw(myServo1, 0);
+  goStraight();
   delay(500);
+  move_cw(myServo0, 5);
+  move_cw(myServo1, 5);
+  s1_read = readQD(SENSOR1_PIN);
+  while(s1_read > thresh1) {
+    s1_read = readQD(SENSOR1_PIN);
+    delay(5);
+  }
+  while(s1_read <= thresh1) {
+    s1_read = readQD(SENSOR1_PIN);
+    delay(5);
+  }
+  delay(50);
+  stopMoving();
 }
 
 void turnRight() {
-  move_ccw(myServo0, 10);
-  move_ccw(myServo1, 10);
-  delay(750);
+  goStraight();
+  delay(500);
+  move_ccw(myServo0, 5);
+  move_ccw(myServo1, 5);
+  s0_read = readQD(SENSOR0_PIN);
+  while(s0_read > thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(5);
+  }
+  while(s0_read <= thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(5);
+  }
+  delay(50);
+  stopMoving();
+}
+
+void ir_fft () {
+  ADCSRA = 0xe5; // set the adc to free running mode
+  ADMUX = 0x40; // use adc0
+  //analogRead(0);
+  delay(20);
+  //delay(1);
+  for (int i = 0 ; i < 90 ; i += 2) { // save 256 samples
+    while(!(ADCSRA & 0x10)); // wait for adc to be ready
+    ADCSRA = 0xf5; // restart adc
+    byte m = ADCL; // fetch adc data
+    byte j = ADCH;
+    int k = (j << 8) | m; // form into an int
+    k -= 0x0200; // form into a signed int
+    k <<= 6; // form into a 16b signed int
+    fft_input[i] = k; // put real data into even bins
+    fft_input[i+1] = 0; // set odd bins to 0
+  }
+  fft_window(); // window the data for better frequency response
+  fft_reorder(); // reorder the data before doing the fft
+  fft_run(); // process the data in the fft
+  fft_mag_log(); // take the output of the fft
+  sei();
+  //Serial.println("start");
+  for (byte i = 0 ; i < FFT_N/2 ; i++) { 
+    //Serial.println(fft_log_out[i]); // send out the data
+    output[i] = fft_log_out[i];
+  }
 }
 
 int turnCount;
@@ -117,13 +173,13 @@ void setup() {
 }
 
 signed int adc_read() {
-  while(!(ADCSRA & 0x10)); // wait for adc to be ready
+  //while(!(ADCSRA & 0x10)); // wait for adc to be ready
   ADCSRA = 0xf5; // restart adc
   byte m = ADCL; // fetch adc data
   byte j = ADCH;
   int k = (j << 8) | m; // form into an int
-  k -= 0x0200; // form into a signed int
-  k <<= 6; // form into a 16b signed int
+  //k -= 0x0200; // form into a signed int
+  //k <<= 6; // form into a 16b signed int
   return k;
 }
 
@@ -131,34 +187,15 @@ void loop() {
   // These delays are purely for ease of reading.
   while(1) { // reduces jitter
     //cli();  // UDRE interrupt slows this way down on arduino1.0
-    //ADCSRA = 0xe5; // set the adc to free running mode
-    ADMUX = 0x40; // use adc0
-    //delay(1);
-    for (int i = 0 ; i < 90 ; i += 2) { // save 256 samples
-      while(!(ADCSRA & 0x10)); // wait for adc to be ready
-      ADCSRA = 0xf5; // restart adc
-      byte m = ADCL; // fetch adc data
-      byte j = ADCH;
-      int k = (j << 8) | m; // form into an int
-      k -= 0x0200; // form into a signed int
-      k <<= 6; // form into a 16b signed int
-      fft_input[i] = k; // put real data into even bins
-      fft_input[i+1] = 0; // set odd bins to 0
-    }
-    fft_window(); // window the data for better frequency response
-    fft_reorder(); // reorder the data before doing the fft
-    fft_run(); // process the data in the fft
-    fft_mag_log(); // take the output of the fft
-    sei();
-    //Serial.println("start");
-    for (byte i = 0 ; i < FFT_N/2 ; i++) { 
-      //Serial.println(fft_log_out[i]); // send out the data
-      output[i] = fft_log_out[i];
-    }
-
+  ir_fft();
+  //ADCSRA = ADCSRA & !(0x20);
   s0_read = readQD(SENSOR0_PIN);
   s1_read = readQD(SENSOR1_PIN);
   //s2_read = readQD(SENSOR2_PIN);
+  while (output[41] > thresh_ir) {
+    stopMoving(); 
+    ir_fft();
+  }
   if(s0_read > thresh0 && s1_read > thresh1)
     goStraight();
   else if(s0_read < thresh0 && s1_read > thresh1)
@@ -167,25 +204,34 @@ void loop() {
     corLeft();
   else if(s0_read < thresh0 && s1_read < thresh1){ // at an intersection
       ADMUX = 0x41;
-      move_cw(myServo1, 0);
-      move_cw(myServo0, 0);
-      //delay(1);
       int dist = adc_read();
+      //turnLeft();
+      //Serial.println("first");
       //Serial.println(dist);
-      if (dist <= thresh_wall) goStraight();
+      //delay(20);
+      //move_cw(myServo1, 0);
+      //move_cw(myServo0, 0);
+      //delay(1);
+      dist = adc_read();
+      //Serial.println("second");
+      //Serial.println(dist);
+      //Serial.println(dist);
+      if (dist < thresh_wall) goStraight();
       else {
         turnLeft(); // if wall in front, turn left
         dist = adc_read();
-        if (dist <= thresh_wall) goStraight(); // if no wall to the left, go straight
+        //Serial.println("third");
+        //Serial.println(dist);
+        if (dist < thresh_wall) goStraight(); // if no wall to the left, go straight
         else {
-          turnLeft();
-          dist = adc_read();;
-          if (dist <= thresh_wall) goStraight(); // if no wall behind, go straight
+          turnRight();
+          turnRight();
+          dist = adc_read();
+          //Serial.println(dist);
+          if (dist < thresh_wall) goStraight(); // if no wall behind, go straight
           else {
-            turnLeft();
-            dist = adc_read();
-            if (dist <= thresh_wall) goStraight(); // if no wall to the right, go straight
-            else turnLeft();
+            turnRight();
+            goStraight();
           }
         }
       }
