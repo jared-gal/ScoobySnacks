@@ -72,7 +72,7 @@
                 </li>
                 <li class="list-unstyled-item list-hours-item d-flex">
                   Milestone Two
-                  <span class="ml-auto">Coming Soon</span>
+                  <span class="ml-auto">Wall Detection and Signal Detection</span>
                 </li>
                 <li class="list-unstyled-item list-hours-item d-flex">
                   Milestone Three
@@ -103,7 +103,7 @@
                <p></p>
                <p> <b> <big>Figure Eight:</big></b> </p>
                <p> Our robot was able to successfully trace a figure eight on the grid.</p>
-               <p><small><i>Figure Eight Attempt Video</i></small></p>
+               <p><small><i>Figure Eight Video</i></small></p>
                <div style="position:relative;height:0;padding-bottom:75.0%"><iframe src="https://www.youtube.com/embed/KqPPQGsI_5g?ecver=2" width="480" height="360" frameborder="0" allow="autoplay; encrypted-media" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
                
               </div>
@@ -116,6 +116,38 @@
                 <p> <b>Error and Solution to the ISR Sensor Implementation Problem:</b> </p>
                 <p>Using a digital line sensor created many difficulties in the milestone. The first way the digital sensors were read was using an ISR that was triggered by new input, with each sensor connected to a digital pin. In the ISR, the sensor was read using the built-in micros() function, which measures microseconds since the arduino began running the current program with 4 microsecond precision. When both sensors were on the white line and too close, some type of error was encountered that resulted in negative numbers being read. The way in which the error was corrected was to use a different measurement system after debugging this issue for over an hour with the help of a TA with no improvements. </p>
                 <p>The improved reading method is to use a function to set the “out” pin to an output, drive it high, then waits 10 microseconds and the pin is changed to an input. The function will return how many microseconds the pin was high for, between 0 and 3000 microseconds, with 4 microsecond precision. It was determined when the sensors were on the line or not by the use of a threshold value. If either sensor was above its threshold value then it would be determined that said sensor was off of the white line. The thresholds were tested using simple if statement conditionals which proved to be more accurate than while loops that were in a previous implementation.</p>
+              </div>
+             <div align = "middle">
+               
+               
+               
+               <p><b><big> MILESTONE 2:</big></b><p>
+             <p> <b> <big>Objectives:</big></b> </p>
+                <p>One: The robot is able to successfully circle an arbitrary set of walls. 
+                </p>
+                <p>Two: The robot is able to avoid other robots in its path. 
+                </p>
+               <p>Three: The robot can line track, avoid walls, and avoid other robots simultaneously. 
+                </p>
+                <p></p>
+                <p> <b> <big>Wall Following:</big></b> </p>
+                <p> WORDS</p>
+               <p><small><i>Basic Wall Detection</i></small></p>
+                <p>WORDS</p>
+               <p><small><i>Tracing a Box</i></small></p>
+               <p></p>
+               <p> <b> <big>Avoiding Other Robots:</big></b> </p>
+               <p> WORDS</p>
+               <p><small><i>Detection of Other Robot Video</i></small></p>
+               <p></p>
+               <p> <b> <big>Integrated System:</big></b> </p>
+               <p> WORDS</p>
+               <p><small><i>Full Detection Video</i></small></p>
+               
+              <div align = "left">
+                <p> <b> <big>Further Discussion:</big></b> </p>
+                <p> <b> Implementation:</b> </p>
+                <p> WORDS </p>
               </div>
           </div>
         </div>
