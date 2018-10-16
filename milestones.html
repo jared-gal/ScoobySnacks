@@ -148,7 +148,8 @@
                 <p> <b> <big>Further Discussion:</big></b> </p>
                 <p> <b> Implementation:</b> </p>
                 <p> One primary note that is not immediately apparent in implementing this milestone was that the group decided the FFT for robot detection could be run at an interval. To achieve the interval run of the FFT code, a simple count condition was introduced in the loop, such that the variable counted up during the main function. Upon reaching a certain value (20 in this case) the FFT calculation would be triggered and the count reset.</p>
-              </div>
+                <p> An additional word of caution is that once setting the ADMUX value, there is a finite amount of time that reading the value of the ADC will only give a garbage value. As such, the group's implementation simply read it once to clear the register, delayed for 20 milliseconds, and then read again to receive a valid value.</p>
+               </div>
           </div>
         </div>
       </div>
