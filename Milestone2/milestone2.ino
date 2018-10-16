@@ -20,6 +20,8 @@ int output[128];
 const int DIST = A1;
 const int SERVO1 = A4;
 const int SERVO2 = A5;
+const int WALL_LED = 12;
+const int ROBOT_LED = 11;
 
 #define SENSOR0_PIN 2 // right
 #define SENSOR1_PIN 3 // left
@@ -37,10 +39,8 @@ volatile int s1_read;
 
 int thresh0 = 500;
 int thresh1 = 200;
-int thresh_wall = 150;
+int thresh_wall = 120;
 int thresh_ir = 80;
-volatile boolean robotDetected = false;
-volatile int robotProx = 0;
 
 //Code for the QRE1113 Digital board
 //Outputs via the serial terminal – Lower numbers mean more reflected
@@ -60,21 +60,6 @@ int readQD(int pin){
   while (digitalRead(pin) == HIGH && (micros() - t) < 3000);
   diff = micros()-t;
   return diff;
-}
-
-
-ISR(TIMER1_OVF_vect)        // interrupt service routine every one second
-{
-    //calculating the FFT or the IR detection
-    robotProx = ir_fft();
-
-    //checking if the value is large enough to be a detected robot
-    if(robotProx >= 120){
-        robotDetected = true;
-    }  
-
-    
-    
 }
 
 // input 0-90
@@ -108,20 +93,66 @@ void corRight() {
 }
 
 void turnLeft() {
+
   move_cw(myServo0, 5);
   move_cw(myServo1, 5);
-  delay(500);
+  s1_read = readQD(SENSOR1_PIN);
+  while(s1_read > thresh1) {
+    s1_read = readQD(SENSOR1_PIN);
+    delay(5);
+  }
+  while(s1_read <= thresh1) {
+    s1_read = readQD(SENSOR1_PIN);
+    delay(5);
+  }
+  delay(100);
   stopMoving();
 }
 
 void turnRight() {
+
   move_ccw(myServo0, 5);
   move_ccw(myServo1, 5);
-  delay(500);
+  s0_read = readQD(SENSOR0_PIN);
+  while(s0_read > thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(5);
+  }
+  while(s0_read <= thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(5);
+  }
+  delay(100);
   stopMoving();
 }
 
-int ir_fft () {
+void turn180 (){
+  move_ccw(myServo0, 5);
+  move_ccw(myServo1, 5);
+  s0_read = readQD(SENSOR0_PIN);
+  while(s0_read > thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(1);
+  }
+  delay(5);
+  while(s0_read <= thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(1);
+  }
+  delay(5);
+  while(s0_read > thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(1);
+  }
+  delay(5);
+  while(s0_read <= thresh0) {
+    s0_read = readQD(SENSOR0_PIN);
+    delay(1);
+  }
+  delay(50);
+  stopMoving();
+}
+void ir_fft () {
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
   //analogRead(0);
@@ -143,49 +174,65 @@ int ir_fft () {
   fft_run(); // process the data in the fft
   fft_mag_log(); // take the output of the fft
   sei();
-  return fft_log_out[41];
+  //Serial.println("start");
+  for (byte i = 0 ; i < FFT_N/2 ; i++) { 
+    //Serial.println(fft_log_out[i]); // send out the data
+    output[i] = fft_log_out[i];
+  }
 }
+
+int turnCount;
+volatile int count =0;
 
 void setup() {
   myServo0.attach(A4);
   myServo1.attach(A5);
+  //turnCount = 0;
+  //states are as follows 
   
-  TIMSK0 = 0; // turn off timer0 for lower jitter
+  //TIMSK0 = 0; // turn off timer0 for lower jitter
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
   DIDR0 = 0x01; // turn off the digital input for adc0
   DIDR1 = 0x01; // turn off the digital input for adc1
   pinMode(DIST, INPUT);
-  
-//____________________________________________
-//setup the one second timer
-  Serial.begin(9600);       // inicializacija serijskega porta
-  noInterrupts();           // disable all interrupts
- 
-  TCCR1A = 0;
-  TCCR1B = 0;
-  int timer1_counter = 31250; //34286;   // preload timer 65536-16MHz/256/2Hz
-
-  TCNT1 = timer1_counter;   // preload timer
-  TCCR1B |= (1 << CS12);    // 256 prescaler
-  TIMSK1 |= (1 << TOIE1);   // enable timer overflow interrupt
-
-  interrupts();             // enable all interrupts
-//_____________________________________________________
+  pinMode(WALL_LED, OUTPUT);
+  pinMode(ROBOT_LED, OUTPUT);
+//  Serial.begin(9600);
 }
 
+signed int adc_read() {
+  //while(!(ADCSRA & 0x10)); // wait for adc to be ready
+  ADCSRA = 0xf5; // restart adc
+  byte m = ADCL; // fetch adc data
+  byte j = ADCH;
+  int k = (j << 8) | m; // form into an int
+  //k -= 0x0200; // form into a signed int
+  //k <<= 6; // form into a 16b signed int
+  return k;
+}
 
 void loop() {
+  // These delays are purely for ease of reading.
+  while(1) { // reduces jitter
+    //cli();  // UDRE interrupt slows this way down on arduino1.0
+    count++;
+  if(count == 20){ ir_fft(); count = 0;}
+  //ADCSRA = ADCSRA & !(0x20);
+
+  //s2_read = readQD(SENSOR2_PIN);
+  while (output[41] > thresh_ir) {
+    digitalWrite(ROBOT_LED, HIGH);
+    stopMoving();
+    delay(100);
+    turnRight();//CHANGE THIS FOR A REAL RESPONSE IN A BIT
+    goStraight();
+    delay(500); 
+    ir_fft();
+    digitalWrite(ROBOT_LED, LOW);
+  }
   s0_read = readQD(SENSOR0_PIN);
   s1_read = readQD(SENSOR1_PIN);
-
-  while(robotDetected){
-     turnRight();
-     delay(200);
-     goStraight();
-     delay(300);
-   }
-
   if(s0_read > thresh0 && s1_read > thresh1)
     goStraight();
   else if(s0_read < thresh0 && s1_read > thresh1)
@@ -193,14 +240,51 @@ void loop() {
   else if(s0_read > thresh0 && s1_read < thresh1)
     corLeft();
   else if(s0_read < thresh0 && s1_read < thresh1){ // at an intersection
-      noInterrupts();
-      int dist = analogRead(DIST);
-      while(dist > thresh_wall){
-          turnLeft();
-          dist = analogRead(DIST);
+      ADMUX = 0x41;
+      int dist = adc_read();
+      delay(20);
+      
+      dist = adc_read();
+      //turnLeft();
+      //Serial.println("first");
+      //Serial.println(dist);
+      //delay(20);
+      //move_cw(myServo1, 0);
+      //move_cw(myServo0, 0);
+      //delay(1);
+      //Serial.println("second");
+      //Serial.println(dist);
+      //Serial.println(dist);
+//      Serial.println(dist);
+//      Serial.println(thresh_wall);
+//      Serial.println();
+      if (dist < thresh_wall) goStraight();
+      
+      else {
+        digitalWrite(WALL_LED, HIGH);
+        goStraight();
+        delay(500);
+        turnLeft(); // if wall in front, turn left
+        delay(500);
+        dist = adc_read();
+        //Serial.println("third");
+        //Serial.println(dist);
+        if (dist < thresh_wall) {goStraight(); digitalWrite(WALL_LED, LOW);} // if no wall to the left, go straight
+        else {
+          turnRight();
+          delay(50);
+          turnRight();
+          delay(200);
+          dist = adc_read();
+          //Serial.println(dist);
+          if (dist < thresh_wall) {goStraight(); digitalWrite(WALL_LED, LOW);} // if no wall behind, go straight
+          else {
+            turnRight();
+            goStraight();
+            digitalWrite(WALL_LED, LOW);
+          }
+        }
       }
-      interrupts();
-      goStraight();
+  }
   }
 }
-
