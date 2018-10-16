@@ -130,24 +130,24 @@
                <p>Three: The robot can line track, avoid walls, and avoid other robots simultaneously. 
                 </p>
                 <p></p>
-                <p> <b> <big>Wall Following:</big></b> </p>
-                <p> WORDS</p>
-               <p><small><i>Basic Wall Detection</i></small></p>
-                <p>WORDS</p>
-               <p><small><i>Tracing a Box</i></small></p>
+                <p> <b> <big>Wall Detection and Avoidance:</big></b> </p>
+                <p> The robot is able to follow walls using thresholding on the solo sensor on the front. Once the robot reaches an intersection it reads the front, wall detecting IR sensor. If the read value is less than the threshold then there is a wall detected and the robot reacts. The react pattern is as follows: if no wall detected if front move forward (after any number of previous turns), if a wall detected turn left and recheck, if there is still a wall then turn around and recheck, and finally if there is still a wall after the 180 degree turn, turn right one last time and return the way it came.</p>
+                <p> A video of operation can be seen below demonstrating proper line following as well as wall avoidance.</p>
+               <div style="position:relative;height:0;padding-bottom:56.25%"><iframe src="https://www.youtube.com/embed/Wfx0UQ-Yn24?ecver=2" width="640" height="360" frameborder="0" allow="autoplay; encrypted-media" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
                <p></p>
                <p> <b> <big>Avoiding Other Robots:</big></b> </p>
-               <p> WORDS</p>
-               <p><small><i>Detection of Other Robot Video</i></small></p>
+               <p> In order to avoid other robots, it was determined that the best algorithm for now would be to simply turn the robot 180 degrees and have it travel the opposite direction it was originally going upon detecting another robot.</p>
+               <p>Rather than separately demonstrate the robot detection, this was integrated immediately to the overall system demonstrated in a video in the <b>Integrated System </b> section.</p>
                <p></p>
                <p> <b> <big>Integrated System:</big></b> </p>
-               <p> WORDS</p>
+               <p> The final integrated system was able to detect other robots and react to them, line trace, as well as avoid walls in the maze. In order to fully display what the action of the robot is two LEDs were implemented as well. The green LED is turned on for the duration that the robot is detecting and avoiding walls. The red LED is on for the duration that the robot is detecting another robot and reacting to the hazard.</p>
+               <div style="position:relative;height:0;padding-bottom:56.25%"><iframe src="https://www.youtube.com/embed/2uqn-Q-XyeU?ecver=2" width="640" height="360" frameborder="0" allow="autoplay; encrypted-media" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
                <p><small><i>Full Detection Video</i></small></p>
                
               <div align = "left">
                 <p> <b> <big>Further Discussion:</big></b> </p>
                 <p> <b> Implementation:</b> </p>
-                <p> WORDS </p>
+                <p> One primary note that is not immediately apparent in implementing this milestone was that the group decided the FFT for robot detection could be run at an interval. To achieve the interval run of the FFT code, a simple count condition was introduced in the loop, such that the variable counted up during the main function. Upon reaching a certain value (20 in this case) the FFT calculation would be triggered and the count reset.</p>
               </div>
           </div>
         </div>
