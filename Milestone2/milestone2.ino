@@ -11,17 +11,16 @@
 
 #define LOG_OUT 1 // use the log output function
 #define FFT_N 256 // set to 256 point fft
-int output[128];
 
 #include <FFT.h> // include the library
 
 #include <Servo.h>
 
-const int DIST = A1;
-const int SERVO1 = A4;
-const int SERVO2 = A5;
-const int WALL_LED = 12;
-const int ROBOT_LED = 11;
+const static int DIST = A1; // front wall sensor
+const static int SERVO1 = A4;
+const static int SERVO2 = A5;
+const static int WALL_LED = 12; // green led, turn on when wall detected
+const static int ROBOT_LED = 11; // red led, turn on when robot detected
 
 #define SENSOR0_PIN 2 // right
 #define SENSOR1_PIN 3 // left
@@ -37,10 +36,13 @@ Servo myServo1;
 volatile int s0_read;
 volatile int s1_read;
 
-int thresh0 = 500;
-int thresh1 = 200;
-int thresh_wall = 120;
-int thresh_ir = 80;
+volatile int count =0;
+
+static const int thresh0 = 500; // threshold for sensor 0
+static const int thresh1 = 200; // threshold for sensor 1
+static const int thresh_wall = 120; 
+static const int thresh_ir = 80;
+volatile int ir_fft_val;
 
 //Code for the QRE1113 Digital board
 //Outputs via the serial terminal – Lower numbers mean more reflected
@@ -72,11 +74,13 @@ void move_ccw(Servo servo, int speed) {
   servo.write(speed+90);
 }
 
+// stop both servos
 void stopMoving() {
   move_cw(myServo0, 0);
   move_cw(myServo1, 0);
 }
 
+// go straight
 void goStraight() {
   move_cw(myServo0, 5);
   move_ccw(myServo1, 5);
@@ -92,8 +96,10 @@ void corRight() {
   move_ccw(myServo1, 6);
 }
 
+/* uses left line sensor to turn until it reaches the next line, and keep going a little longer
+ * stops moving before the end. 
+ */
 void turnLeft() {
-
   move_cw(myServo0, 5);
   move_cw(myServo1, 5);
   s1_read = readQD(SENSOR1_PIN);
@@ -152,7 +158,8 @@ void turn180 (){
   delay(50);
   stopMoving();
 }
-void ir_fft () {
+
+int ir_fft () {
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
   //analogRead(0);
@@ -177,12 +184,11 @@ void ir_fft () {
   //Serial.println("start");
   for (byte i = 0 ; i < FFT_N/2 ; i++) { 
     //Serial.println(fft_log_out[i]); // send out the data
-    output[i] = fft_log_out[i];
+    if (i == 41) {
+      return fft_log_out[i];
+    }
   }
 }
-
-int turnCount;
-volatile int count =0;
 
 void setup() {
   myServo0.attach(A4);
@@ -217,18 +223,18 @@ void loop() {
   while(1) { // reduces jitter
     //cli();  // UDRE interrupt slows this way down on arduino1.0
     count++;
-  if(count == 20){ ir_fft(); count = 0;}
+  if(count == 20){ ir_fft_val = ir_fft(); count = 0;}
   //ADCSRA = ADCSRA & !(0x20);
 
   //s2_read = readQD(SENSOR2_PIN);
-  while (output[41] > thresh_ir) {
+  while (ir_fft_val > thresh_ir) {
     digitalWrite(ROBOT_LED, HIGH);
     stopMoving();
     delay(100);
     turnRight();//CHANGE THIS FOR A REAL RESPONSE IN A BIT
     goStraight();
     delay(500); 
-    ir_fft();
+    ir_fft_val = ir_fft();
     digitalWrite(ROBOT_LED, LOW);
   }
   s0_read = readQD(SENSOR0_PIN);
@@ -245,19 +251,6 @@ void loop() {
       delay(20);
       
       dist = adc_read();
-      //turnLeft();
-      //Serial.println("first");
-      //Serial.println(dist);
-      //delay(20);
-      //move_cw(myServo1, 0);
-      //move_cw(myServo0, 0);
-      //delay(1);
-      //Serial.println("second");
-      //Serial.println(dist);
-      //Serial.println(dist);
-//      Serial.println(dist);
-//      Serial.println(thresh_wall);
-//      Serial.println();
       if (dist < thresh_wall) goStraight();
       
       else {
