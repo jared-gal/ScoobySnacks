@@ -36,7 +36,7 @@ Servo myServo1;
 volatile int s0_read;
 volatile int s1_read;
 
-volatile int count =0;
+volatile int count = 0; // counts num loops to make fft happen less often
 
 static const int thresh0 = 500; // threshold for sensor 0
 static const int thresh1 = 200; // threshold for sensor 1
@@ -213,8 +213,6 @@ signed int adc_read() {
   byte m = ADCL; // fetch adc data
   byte j = ADCH;
   int k = (j << 8) | m; // form into an int
-  //k -= 0x0200; // form into a signed int
-  //k <<= 6; // form into a 16b signed int
   return k;
 }
 
@@ -222,11 +220,8 @@ void loop() {
   // These delays are purely for ease of reading.
   while(1) { // reduces jitter
     //cli();  // UDRE interrupt slows this way down on arduino1.0
-    count++;
+  count++; // variable 
   if(count == 20){ ir_fft_val = ir_fft(); count = 0;}
-  //ADCSRA = ADCSRA & !(0x20);
-
-  //s2_read = readQD(SENSOR2_PIN);
   while (ir_fft_val > thresh_ir) {
     digitalWrite(ROBOT_LED, HIGH);
     stopMoving();
@@ -246,32 +241,30 @@ void loop() {
   else if(s0_read > thresh0 && s1_read < thresh1)
     corLeft();
   else if(s0_read < thresh0 && s1_read < thresh1){ // at an intersection
-      ADMUX = 0x41;
-      int dist = adc_read();
-      delay(20);
-      
-      dist = adc_read();
-      if (dist < thresh_wall) goStraight();
-      
-      else {
+      ADMUX = 0x41; // use adc1
+      int dist = adc_read(); // this is garbage value
+      delay(20); // wait before reading again so that mux sets
+      dist = adc_read(); // useful value
+      if (dist < thresh_wall) goStraight(); // no wall in front
+      else { // wall in front
         digitalWrite(WALL_LED, HIGH);
-        goStraight();
-        delay(500);
+        goStraight(); // tries to center it a little bit
+        delay(500); // might need to change this value
         turnLeft(); // if wall in front, turn left
-        delay(500);
+        delay(500); // stops for half a second for stability
         dist = adc_read();
         //Serial.println("third");
         //Serial.println(dist);
         if (dist < thresh_wall) {goStraight(); digitalWrite(WALL_LED, LOW);} // if no wall to the left, go straight
-        else {
+        else { // wall to the left
+          turnRight(); // turns until next intersection
+          delay(50); // wait for stability
           turnRight();
-          delay(50);
-          turnRight();
-          delay(200);
+          delay(200); // wait for stability
           dist = adc_read();
           //Serial.println(dist);
           if (dist < thresh_wall) {goStraight(); digitalWrite(WALL_LED, LOW);} // if no wall behind, go straight
-          else {
+          else { // wall to the right
             turnRight();
             goStraight();
             digitalWrite(WALL_LED, LOW);
