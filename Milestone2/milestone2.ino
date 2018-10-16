@@ -132,33 +132,6 @@ void turnRight() {
   stopMoving();
 }
 
-void turn180 (){
-  move_ccw(myServo0, 5);
-  move_ccw(myServo1, 5);
-  s0_read = readQD(SENSOR0_PIN);
-  while(s0_read > thresh0) {
-    s0_read = readQD(SENSOR0_PIN);
-    delay(1);
-  }
-  delay(5);
-  while(s0_read <= thresh0) {
-    s0_read = readQD(SENSOR0_PIN);
-    delay(1);
-  }
-  delay(5);
-  while(s0_read > thresh0) {
-    s0_read = readQD(SENSOR0_PIN);
-    delay(1);
-  }
-  delay(5);
-  while(s0_read <= thresh0) {
-    s0_read = readQD(SENSOR0_PIN);
-    delay(1);
-  }
-  delay(50);
-  stopMoving();
-}
-
 int ir_fft () {
   ADCSRA = 0xe5; // set the adc to free running mode
   ADMUX = 0x40; // use adc0
