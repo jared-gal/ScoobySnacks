@@ -83,14 +83,6 @@ void setup(void)
   //RF24_250KBPS for 250kbs, RF24_1MBPS for 1Mbps, or RF24_2MBPS for 2Mbps
   radio.setDataRate(RF24_250KBPS);
 
-  // optionally, reduce the payload size.  seems to
-  // improve reliability
-  //radio.setPayloadSize(8);
-
-  //
-  // Open pipes to other nodes for communication
-  //
-
   // This simple sketch opens two pipes for these two nodes to communicate
   // back and forth.
   // Open 'our' pipe for writing
@@ -220,37 +212,6 @@ void loop(void)
     new_data = shiftpack(x_coord, y_coord, pos_data);
     senddata(new_data);
     delay(5000);
-    // First, stop listening so we can talk.
-    radio.stopListening();
-
-    // Take the time, and send it.  This will block until complete
-    //unsigned long time = millis();
-    
-
-    // Now, continue listening
-    radio.startListening();
-
-    // Wait here until we get a response, or timeout (250ms)
-    /*unsigned long started_waiting_at = millis();
-    bool timeout = false;
-    while ( ! radio.available() && ! timeout )
-      if (millis() - started_waiting_at > 200 )
-        timeout = true;
-
-    // Describe the results
-    if ( timeout )
-    {
-      printf("Failed, response timed out.\n\r");
-    }
-    else
-    {
-      // Grab the response, compare, and send to debugging spew
-      unsigned long got_time;
-      radio.read( &got_time, sizeof(unsigned long) );
-
-      // Spew it
-      printf("Got response %lu, round-trip delay: %lu\n\r",got_time,millis()-got_time);
-    }*/
 
     // Try again 1s later
     delay(1000);
