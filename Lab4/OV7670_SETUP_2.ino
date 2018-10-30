@@ -19,7 +19,7 @@ void setup() {
   //Serial.println("stuff");
   OV7670_write_register(0x11 , ((0x80 | (1 << 6)) >> 1));
   OV7670_write_register(0x12 , ((0 | (33 << 1)) >> 1));
-  OV7670_write_register(0x14 , ((0x4A | (1 << 4)) >> ));
+  OV7670_write_register(0x14 , ((0x4A | (1 << 4)) >> 1));
   OV7670_write_register(0x1E , ((0 | (3 << 4)) >> 1);
   OV7670_write_register(0x3E , ((0x0E | (1 << 3)) >> 1));
   //Serial.println("stuff");
