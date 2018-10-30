@@ -14,14 +14,14 @@ void setup() {
   delay(100);
   
   // TODO: WRITE KEY REGISTERS
-  String a = OV7670_write_register(0x0C , ((0 | (1 << 3)) >> 1));
+  OV7670_write_register(0x12 , 0x66);
+  OV7670_write_register(0x0C , 0x08);
   //Serial.println(a);
   //Serial.println("stuff");
-  OV7670_write_register(0x11 , ((0x80 | (1 << 6)) >> 1));
-  OV7670_write_register(0x12 , ((0 | (33 << 1)) >> 1));
-  OV7670_write_register(0x14 , ((0x4A | (1 << 4)) >> 1));
-  OV7670_write_register(0x1E , ((0 | (3 << 4)) >> 1);
-  OV7670_write_register(0x3E , ((0x0E | (1 << 3)) >> 1));
+  OV7670_write_register(0x11 , 0xC0);
+  OV7670_write_register(0x14 , 0x5A);
+  OV7670_write_register(0x1E , 0x30);
+  OV7670_write_register(0x3E , 0x0E);
   //Serial.println("stuff");
   
 }
