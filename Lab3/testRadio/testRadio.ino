@@ -148,13 +148,13 @@ void loop(void)
         String west = "west=false";
         int wallLoc = (int) ((maze_data & 0x0000001E) >> 1);
         Serial.println(wallLoc, BIN);
-        if((wallLoc & 0b0001) & 0b0001) {
+        if((wallLoc & 0b1000) >> 3) {
           north = "north=true,";
-        } if((wallLoc & 0b0010) >> 1) {
-          east = "east=true,";
         } if((wallLoc & 0b0100) >> 2) {
+          east = "east=true,";
+        } if((wallLoc & 0b0010) >> 1) {
           south = "south=true,";
-        } if((wallLoc & 0b1000) >> 3 ) {
+        } if((wallLoc & 0b0001)) {
           west = "west=true";
         }      
         pos_data = north + east + south + west;
