@@ -46,8 +46,8 @@ wire [7:0]	VGA_COLOR_IN;
 wire [9:0]	VGA_PIXEL_X;
 wire [9:0]	VGA_PIXEL_Y;
 wire [7:0]	MEM_OUTPUT;
-wire		VGA_VSYNC_NEG;
-wire		VGA_HSYNC_NEG;
+wire			VGA_VSYNC_NEG;
+wire			VGA_HSYNC_NEG;
 reg			VGA_READ_MEM_EN;
 
 assign GPIO_0_D[5] = VGA_VSYNC_NEG;

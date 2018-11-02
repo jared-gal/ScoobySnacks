@@ -1,36 +1,38 @@
 module DOWNSAMPLER
 (
+	data_val,
 	pixel_in,
 	pixel_out,
 	W_EN,
-	PCLK, 
-	HREF, 
-	VSYNC
+	clk
 );
 
-input PCLK;
-input HREF;
-input VSYNC;
-input [7:0] pixel_in;
-output [7:0] pixel_out;
-output reg W_EN;
-
-reg byteNum = 0;      
 input data_val;
+input clk;
+input [15:0] pixel_in;
+output [7:0] pixel_out;
+output W_EN;
 
-always @ (posedge PCLK) begin
-	if(byteNum == 0 && HREF) begin
-		pixel_out[7:5] <= pixel_in[7:5];
-		pixel_out[4:3] <= pixel_in[2:1];
-		pixel_out[3:0] <= 3'd0;
-		byteNum <= 1;
-		W_EN <= 1'd0;
-	end else if(byteNum == 1 && HREF) begin
-		pixel_out[7:5] <= pixel_out[7:5];
-		pixel_out[4:3] <= pixel_out[4:3];
-		pixel_out[3:0] <= pixel_in[4:2];
-		byteNum <= 0;
-		W_EN <= 1'd1;
+reg w_en;
+reg [2:0] green;
+reg [2:0] red;
+reg [1:0] blue;
+
+assign pixel_out = {red, blue, green};
+assign W_EN = w_en;
+
+always @ (posedge clk) begin
+	if (data_val) begin
+		red <= pixel_in[15:13];
+		blue <= pixel_in[4:3];
+		green <= pixel_in[11:9];
+		w_en <= 1;
+	end
+	else begin
+		red <= 3'd0;
+		blue <= 2'd0;
+		green <= 3'd0;
+		w_en <= 0;
 	end
 end
 
