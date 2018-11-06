@@ -42,26 +42,32 @@ void setup() {
 //  COm 7, com3, clkrc, com15, com17, mvfp
   //Com 7 for reset (first line resets regs, secocond is for colorbar/RGB mode)  
   OV7670_write_register(0x12 , 0x80);
-  //delay(100); // ta told us to do this but it makes it worse 
+  delay(5); // ta told us to do this but it makes it worse 
   //color bar test/ RGB       - value of 4 sets RGB mode, 6 sets color bar and RGB 
   //OV7670_write_register(0x12 , 0x06);
   
   //Com3 for enable scaling
   OV7670_write_register(0x0C , 0x08);
+  delay(5);
   //CLKRC for external clock
-  OV7670_write_register(0x11 , 0x80);
+  OV7670_write_register(0x11 , 0xC0); //0x40
+  delay(5);
   //com15 for RGB format
-  OV7670_write_register(0x40 , 0xF0);
+  OV7670_write_register(0x40 , 0xD0); 
+  delay(5);
   //COM7 
-  OV7670_write_register(0x12 , 0x0C);
-  //com17
-  OV7670_write_register(0x42 , 0x0C);
+  OV7670_write_register(0x12 , 0x0C); //0x0C for non color bar
+  delay(5);
+  //com17 color bar test
+  OV7670_write_register(0x42 , 0x00); // 0x00 for non color bar
+  delay(5);
   //com7
-  OV7670_write_register(0x12 , 0x02);
-  
+  OV7670_write_register(0x14 , 0x1);
+  delay(5);
+ 
   
   //mvfp for mirror and flip screen
-  OV7670_write_register(0x1E , 0x30);
+  //OV7670_write_register(0x1E , 0x30);
 
   
   set_color_matrix();
