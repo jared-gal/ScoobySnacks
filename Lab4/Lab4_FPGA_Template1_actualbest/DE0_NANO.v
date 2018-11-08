@@ -13,8 +13,8 @@ module DE0_NANO(
 //  PARAMETER declarations
 //=======================================================
 localparam RED = 8'b111_000_00;
-localparam GREEN = 8'b000_111_00; // WE SWITCHED GREEN AND BLUE AHHHHHH
-localparam BLUE = 8'b000_000_11;
+localparam GREEN = 8'b000_110_00; // WE SWITCHED GREEN AND BLUE AHHHHHH
+localparam BLUE = 8'b000_001_11;
 
 //=======================================================
 //  PORT declarations
@@ -98,10 +98,11 @@ VGA_DRIVER driver (
 ///////* Image Processor *///////
 IMAGE_PROCESSOR proc(
 	.PIXEL_IN(MEM_OUTPUT),
-	.CLK(c1_sig),
+	.CLK(PCLK),
 	.VGA_PIXEL_X(VGA_PIXEL_X),
 	.VGA_PIXEL_Y(VGA_PIXEL_Y),
 	.VGA_VSYNC_NEG(VGA_VSYNC_NEG),
+	.VSYNC(VSYNC),
 	.RESULT(RESULT)
 );
 
@@ -109,7 +110,7 @@ IMAGE_PROCESSOR proc(
 DOWNSAMPLER down (
 	.data_val(data_valid),
 	.clk(PCLK),
-	.pixel_in(raw_data),
+	.pixel_in({D7, D6, D5, D4, D3, D2, D1, D0}),
 	.pixel_out(pixel_data_RGB332),
 	.W_EN(W_EN)
 );
@@ -135,15 +136,17 @@ assign HREF = GPIO_1_D[11];
 assign PCLK = GPIO_1_D[12];
 assign VSYNC = GPIO_1_D[10];
 
-always @ (negedge HREF) begin
+assign GPIO_0_D[32] = (RESULT > 9'b0) ? 1'b1 : 1'b0;
+assign GPIO_0_D[33] = (RESULT == 9'd3) ? 1'b1 : 1'b0;
+
+always @ (negedge HREF or posedge VSYNC) begin
 	if (VSYNC)
 		Y_ADDR <= 0;
-	if (Y_ADDR >= `SCREEN_HEIGHT - 1) begin
-		Y_ADDR <= 0;
-	end
-	else begin 
+	else if (!HREF) begin 
 		Y_ADDR <= Y_ADDR + 1'd1;
 	end
+	else 
+		Y_ADDR <= Y_ADDR;
 end
 
 always @ (posedge PCLK) begin
@@ -163,9 +166,9 @@ always @ (posedge PCLK) begin
 		raw_data[13] <= D5;
 		raw_data[14] <= D6;
 		raw_data[15] <= D7;
-		data_valid <= 1'd0;
+		data_valid <= 1'd1;
 		first <= 1'd1;
-		X_ADDR <= X_ADDR;
+		X_ADDR <= X_ADDR + 1'd1;
 	end
 	else if (first && HREF && !VSYNC) begin
 		//W_EN <= 1;
@@ -178,9 +181,9 @@ always @ (posedge PCLK) begin
 		raw_data[5] <= D5;
 		raw_data[6] <= D6;
 		raw_data[7] <= D7;
-		data_valid <= 1'd1;
+		data_valid <= 1'd0;
 		first <= 1'd0;
-		X_ADDR <= X_ADDR + 1'd1;
+		X_ADDR <= X_ADDR;
 	end
 	else begin
 		//W_EN = 0;
