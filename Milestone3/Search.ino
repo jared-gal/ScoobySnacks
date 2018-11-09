@@ -12,7 +12,7 @@ int initial[20][2] = {stx, sty};
 int frontier[20][2] = {stx, sty};
 int visited[20][2] = {stx, sty};
 int neighbor[20][2];
-//Number of nodes in the maze.
+//Size of the maze (one axis)
 int mazesize = 9;
 
 void setup() {
@@ -31,7 +31,7 @@ boolean checkVisited(int a[20][2], int x, int y) {
 }
 
 void loop() {
-  while(frontsize > 0) {
+  while(depth < 20) {
     int n[2] = {frontier[0][0], frontier[0][1]};
     frontier[0][0] = 0;
     frontier[0][1] = 0;
@@ -45,11 +45,13 @@ void loop() {
         neighbor[0][0] = n[0];
         neighbor[0][1] = n[1] -1;
         depth++;
-        if(checkVisited == false) {
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
           frontier[frontsize+1][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
         }
       }
       //East
@@ -57,11 +59,13 @@ void loop() {
         neighbor[0][0] = n[0] + 1;
         neighbor[0][1] = n[1];
         depth++;
-        if(checkVisited == false) {
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
           frontier[frontsize+1][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
         }
       }
       //South
@@ -69,11 +73,13 @@ void loop() {
         neighbor[0][0] = n[0];
         neighbor[0][1] = n[1] + 1;
         depth++;
-        if(checkVisited == false) {
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
           frontier[frontsize+1][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
         }
       }
       //West
@@ -81,11 +87,13 @@ void loop() {
         neighbor[0][0] = n[0] - 1;
         neighbor[0][1] = n[1];
         depth++;
-        if(checkVisited == false) {
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
           frontier[frontsize+1][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
         }
       }
     }
