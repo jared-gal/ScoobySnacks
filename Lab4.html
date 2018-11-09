@@ -103,14 +103,14 @@
                 <p>Once we had the values and destination, the Arduino needed to actually write these to the camera. The means of register writing was to call one of the provided functions with the register address and desired value:  In order to ensure that the correct values were written to each register, the values are first read at the beginning of operation and displayed on the serial terminal, and then read at the end of operation and displayed on the same terminal. The results of the writing as displayed on the serial terminal can be seen in the following image, exhibiting that each register was updated to the correct values intended by our implementation.</p>
                 
                 
-                <div align = "middle"><img  src="img/serialTerm.png" alt=""></div>
+                <div align = "middle"><img  src="img/serialTerm.jpg" alt=""></div>
                 <div align = "middle"><p><small><i>Registers Written on Left and Values on Right </i></small></p></div>
                 
                 <p> <b>FPGA Communication:</b></p>
                 <p> The final aspect of implementation was to create a communication protocol between the Arduino and the FPGA. The general outline of the protocol we developed was a simplistic 5 line parallel communication, one for whether or not a shape was detected (1), one for each shape (4 total), and one for if the color is red or not (5 total) . However, for the lab only two of the lines were necessary: treasure presence and color determination. The FPGA’s pins for these outputs were then wired to two digital pins on the Arduino. Due to random noise, the read could not be done a single time as there was a chance that the read value would be erroneous, thus a different measurement method was devised. Each pin would be read one thousand times, and if the read value was high for greater than 500 of those reads, it was returned as high (nonzero). If not then it was returned as low (0). The function that implemented this can be seen below.</p>
                 
                 
-                <div align = "middle"><img  src="img/serialTerm.png" alt=""></div>
+                <div align = "middle"><img  src="img/serialTerm.jpg" alt=""></div>
                 <div align = "middle"><p><small><i>Registers Written on Left and Values on Right </i></small></p></div>
                          
                
