@@ -110,8 +110,8 @@
                 <p> The final aspect of implementation was to create a communication protocol between the Arduino and the FPGA. The general outline of the protocol we developed was a simplistic 5 line parallel communication, one for whether or not a shape was detected (1), one for each shape (4 total), and one for if the color is red or not (5 total) . However, for the lab only two of the lines were necessary: treasure presence and color determination. The FPGA’s pins for these outputs were then wired to two digital pins on the Arduino. Due to random noise, the read could not be done a single time as there was a chance that the read value would be erroneous, thus a different measurement method was devised. Each pin would be read one thousand times, and if the read value was high for greater than 500 of those reads, it was returned as high (nonzero). If not then it was returned as low (0). The function that implemented this can be seen below.</p>
                 
                 
-                <div align = "middle"><img  src="img/serialTerm.jpg" alt=""></div>
-                <div align = "middle"><p><small><i>Registers Written on Left and Values on Right </i></small></p></div>
+                <div align = "middle"><img  src="img/dutyCycleRead.png" alt=""></div>
+                <div align = "middle"><p><small><i>Duty Cycle Read for Treasure Detection</i></small></p></div>
                          
                <p> <b>Final Demonstration:</b></p>
                 <p> The final demonstration of treasure detection by the Arduino was accomplished using two LEDs. A green LED was lit up when a blue treasure was detected (the color mismatch was due to the lab not having any blue LEDs), a red LED is flashed when a red treasure is detected, and finally no LED is lit when there is no treasure detected. The results of the test can be seen in the following video. </p>
