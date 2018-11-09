@@ -6,13 +6,15 @@
 #define diamond 4
 #define red 5
 #define blue 6
+#define LED_Blue 10
+#define LED_Red 11
 
 //static byte tri;
 //static byte sqr;
 //static byte dia;
 static byte rd;
 static byte bl;
-
+/*
 int treasure_count = 0;
 int red_count = 0;
 int blue_count = 0;
@@ -38,7 +40,7 @@ else {
   no_treasure_detected;
 }
 treasure_count = 0; blue_count = 0; red_count = 0; VSYNC_count = 0;
-
+*/
 
 int readValue(int pin){
   int sum = 0;
@@ -47,7 +49,10 @@ int readValue(int pin){
                 sum++;
             }
       } 
-      return (sum/500); 
+      if(sum > 500)
+        return 1; 
+      else
+        return 0;
 }
 
 
@@ -128,6 +133,10 @@ void setup() {
   //pinMode(diamond,INPUT);
   pinMode(red,INPUT);
   pinMode(blue,INPUT);
+  pinMode(LED_Blue,OUTPUT);
+  pinMode(LED_Red,OUTPUT);
+  digitalWrite(LED_Blue, LOW);
+  digitalWrite(LED_Red, LOW);
   printed_State = -3;
   //tri = 0;
   //sqr = 0;
@@ -138,14 +147,14 @@ void setup() {
 
 void loop(){
   
-  delay(200);
+  delay(500);
 
   //tri = digitalRead(triangle);
   //sqr = digitalRead(square);
   //dia = digitalRead(dia);
   rd = readValue(red);
   bl = readValue(blue);
-  int state = rd<<1 + bl;
+  int state = rd;
 
 //  if(tri > 0 && sqr ==0 && dia ==0){
 //      Serial.println("Triangle Detected") ;
@@ -159,21 +168,29 @@ void loop(){
 //  else{
 //   Serial.println("No Treasure"); 
 //  }
-  if(state != printed_State){
+  if( rd >0){
       Serial.println();
-  Serial.println();
-  Serial.println();
+       Serial.println();
+      Serial.println();
     printed_State = state;
-    if(rd > 0 && bl == 0){
-      Serial.println("COLOR: Red");   
+    if( bl > 0){
+      Serial.println("COLOR: BLUE");   
+      digitalWrite(LED_Blue, HIGH);
+      digitalWrite(LED_Red, LOW);
+      delay(500);
     }
-    else if(rd == 0 && bl >0){
-        Serial.println("COLOR: Blue"); 
+    else if( bl == 0){
+        Serial.println("COLOR: RED"); 
+        digitalWrite(LED_Blue, LOW);
+        digitalWrite(LED_Red, HIGH);
+        delay(500);
       }
-     else{
-        Serial.println("No Color");
-      }
+    
   }
+  else
+     digitalWrite(LED_Blue, LOW);
+    digitalWrite(LED_Red, LOW);
+    Serial.println("NO TREASURE");
 }
 
 
