@@ -68,14 +68,26 @@
               <p> <i>David Pirogovsky, Dylan Neal, Jared Gallina, Larry Tang</i> </p>
               <div id = "content" align = "left">
                 <p> <b> <big>Intro:</big></b> </p>
-                <p>The goal of this lab was to </p>
-                <p> FULL REPORT COMING SOON</p>
-                <p> <b> <big>FPGA Stuff:</big></b> </p>
-                <p><b> </b></p>
-                <p> </p>
-                <p> </p>
-                <div align = "middle"><p><small><i>Video</i></small></p></div>
-                <p> <b> <big>Arduino Stuff:</big></b> </p>
+                <p>The goal of this lab was to create a treasure detection method by using a camera with an FPGA to determine the presence, shape, and color of treasures. These determined results were then to be processed by the Arduino to relay the presence of a treasure and information about it.</p>
+                <p> <b> <big>FPGA Work</big></b> </p>
+                <p> <b> Phase Locked Loop:</b></p>
+                <p> The first necessary step in this lab was to create a phase-locked loop to generate a 50 MHz clock for the RAM, a 25 MHz clock for the VGA, and a 24 MHz clock for the camera. This was done following the instructions on the lab handout, and found in Quartus in Tools > IP Catalog. </p>
+                 <p> <b> Displaying an M9K Block:</b></p>
+                <p>In order to display these blocks on the screen, we used a large if-else block with three vertical checks and eight horizontal checks, since there are three color options and two of the colors have eight settings. The first row increments the value of the red color by one as the x value grows, the second row increments the red and green colors together, and the last row increments red and green together, and increments the blue color every other block. </p>
+                
+                <div align = "middle"><img  src="img/m9kBlock.png" alt=""></div>
+                <div align = "middle"><p><small><i>M9K Block Displayed on Screen</i></small></p></div>
+                
+                <p> <b>Color Bar and Live Camera:</b></p>
+                <p> The camera sends the information for a pixel in two bytes in two clock cycles, so we first read both bytes, then sent the data into the downsampler using a data valid bit. The downsampler sets the write enable for the M9K block so that only valid, downsampled data is written, and the HREF line coming out of the camera is used to synchronize the x address of the pixels and when to increment the y address.  The y address is only incremented when the HREF signal marks the end of a row of pixels, and the x address is incremented every 2 PCLK cycles and is reset at the end of each row.  VSYNC is used to reset both x address and y address at the end of an image frame.  </p>
+                
+                <div align = "middle"><img  src="img/colorBar.png" alt=""></div>
+                <div align = "middle"><p><small><i>Color Bar Displayed on Screen</i></small></p></div>
+                
+                <p> <b>Treasure Detection:</b></p>
+                <p> The image processor takes in one pixel at a time and determines what the primary color component of that pixel is, and if the primary color component is greater than a set threshold, it will increment a counter for that color. At VSYNC, the counters will be evaluated, and if one color predominates and is greater than a hardcoded threshold, the result will be set to a value corresponding to a color. Using ternary operators, we output on two pins if the color is red or blue and if a treasure is detected or not. Unfortunately, our image processor incorrectly detects treasure, periodically (watch video above). It is much better at detecting colors when there is an actual treasure present, as the GPIO pin is more consistently high with the red treasure in front of the camera. Team arduino will have to use some correction method to correctly detect treasures. </p>
+                
+                <p> <b> <big>Arduino:</big></b> </p>
                 <p></p>
                 <p> <b> <big> Integration Stuff: </big></b> </p>
                 <p> <b> </b></p>
