@@ -88,7 +88,11 @@
                 <p> The image processor takes in one pixel at a time and determines what the primary color component of that pixel is, and if the primary color component is greater than a set threshold, it will increment a counter for that color. At VSYNC, the counters will be evaluated, and if one color predominates and is greater than a hardcoded threshold, the result will be set to a value corresponding to a color. Using ternary operators, we output on two pins if the color is red or blue and if a treasure is detected or not. Unfortunately, our image processor incorrectly detects treasure, periodically (watch video above). It is much better at detecting colors when there is an actual treasure present, as the GPIO pin is more consistently high with the red treasure in front of the camera. Team arduino will have to use some correction method to correctly detect treasures. </p>
                 
                 <p> <b> <big>Arduino:</big></b> </p>
+                <p> <b>Writing the Camera Registers:</b></p>
                 <p></p>
+                <p> <b>FPGA Communication:</b></p>
+                <p></p>
+                
                 <p> <b> <big> Integration Stuff: </big></b> </p>
                 <p> <b> </b></p>
                 <p></p>
