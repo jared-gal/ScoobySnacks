@@ -31,8 +31,9 @@ boolean checkVisited(int a[20][2], int x, int y) {
 }
 
 void loop() {
-  while(depth < 20) {
+  while(vissize < 20) {
     int n[2] = {frontier[0][0], frontier[0][1]};
+    frontsize = 0;
     frontier[0][0] = 0;
     frontier[0][1] = 0;
     if(n[0] == mazesize && n[1] == mazesize) {
