@@ -31,8 +31,8 @@ reg  [8:0] res;
 localparam RED = 8'b111_000_00;
 localparam GREEN = 8'b000_11_00;
 localparam BLUE = 8'b000_001_11;
-localparam [15:0] red_thresh = 15'd10000;
-localparam [15:0] blue_thresh = 15'd10000;
+localparam [15:0] red_thresh = 16'd3000;
+localparam [15:0] blue_thresh = 16'd3000;
 
 wire [2:0] red_comp;
 wire [2:0] blue_comp;
@@ -62,25 +62,27 @@ always @ (VGA_PIXEL_X, VGA_PIXEL_Y, VSYNC) begin
 		temp_red <= 16'b0;
 		temp_green <= 16'b0;
 	end
-	else if ( (blue_comp < 3'd3) && (green_comp < 2'd2) && (red_comp > 3'd5) ) begin
-		temp_red <= temp_red + 1;
-		temp_blue <= temp_blue;
-		temp_green <= temp_green;
-	end
-	else if ( (red_comp < 3'd3) && (green_comp < 2'd2) && (blue_comp > 3'd5) ) begin
-		temp_blue <= temp_blue + 1;
-	   temp_red <= temp_red;
-		temp_green <= temp_green;
-	end
-	else if ( (green_comp > 2'd1) && (blue_comp < 3'd3) && (red_comp < 3'd3) ) begin
-		temp_green <= temp_green + 1;
-		temp_blue <= temp_blue;
-		temp_red <= temp_red;
-	end
-	else begin
-		temp_red <= temp_red;
-		temp_blue <= temp_blue;
-		temp_green <= temp_green;
+	else if (VGA_PIXEL_X <= 132 && VGA_PIXEL_X >= 44 && VGA_PIXEL_Y >= 36 && VGA_PIXEL_Y <= 108) begin
+		if ( (blue_comp < 3'd3) && (green_comp < 2'd2) && (red_comp > 3'd5) ) begin
+			temp_red <= temp_red + 1;
+			temp_blue <= temp_blue;
+			temp_green <= temp_green;
+		end
+		else if ( (red_comp < 3'd3) && (green_comp < 2'd2) && (blue_comp > 3'd5) ) begin
+			temp_blue <= temp_blue + 1;
+			temp_red <= temp_red;
+			temp_green <= temp_green;
+		end
+		else if ( (green_comp > 2'd1) && (blue_comp < 3'd3) && (red_comp < 3'd3) ) begin
+			temp_green <= temp_green + 1;
+			temp_blue <= temp_blue;
+			temp_red <= temp_red;
+		end
+		else begin
+			temp_red <= temp_red;
+			temp_blue <= temp_blue;
+			temp_green <= temp_green;
+		end
 	end
 end
 
