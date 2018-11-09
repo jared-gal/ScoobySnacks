@@ -7,12 +7,25 @@
 #define red 5
 #define blue 6
 
-static byte tri;
-static byte sqr;
-static byte dia;
+//static byte tri;
+//static byte sqr;
+//static byte dia;
 static byte rd;
 static byte bl;
 
+
+int readValue(int pin){
+  int sum = 0;
+    for(int i=0; i < 1000; i++){
+          if(digitalRead(pin) > 0){
+                sum++;
+            }
+      } 
+      return (sum/800); 
+}
+
+
+int printed_State;
 ///////// Main Program //////////////
 void setup() {
   Wire.begin();
@@ -42,7 +55,7 @@ void setup() {
 //  COm 7, com3, clkrc, com15, com17, mvfp
   //Com 7 for reset (first line resets regs, secocond is for colorbar/RGB mode)  
   OV7670_write_register(0x12 , 0x80);
-  delay(5); // ta told us to do this but it makes it worse 
+    delay(5); // ta told us to do this but it makes it worse 
   //color bar test/ RGB       - value of 4 sets RGB mode, 6 sets color bar and RGB 
   //OV7670_write_register(0x12 , 0x06);
   
@@ -62,9 +75,8 @@ void setup() {
   OV7670_write_register(0x42 , 0x00); // 0x00 for non color bar
   delay(5);
   //com7
-  OV7670_write_register(0x14 , 0x1);
+  OV7670_write_register(0x14 , 0x51);
   delay(5);
- 
   
   //mvfp for mirror and flip screen
   //OV7670_write_register(0x1E , 0x30);
@@ -85,14 +97,15 @@ void setup() {
 //  Serial.println(read_register_value(0x42));
 //  Serial.println("Address 1E:");
 //  Serial.println(read_register_value(0x1E));
-  pinMode(triangle,INPUT);
-  pinMode(square,INPUT);
-  pinMode(diamond,INPUT);
+  //pinMode(triangle,INPUT);
+  //pinMode(square,INPUT);
+  //pinMode(diamond,INPUT);
   pinMode(red,INPUT);
   pinMode(blue,INPUT);
-  tri = 0;
-  sqr = 0;
-  dia = 0;
+  printed_State = -3;
+  //tri = 0;
+  //sqr = 0;
+  //dia = 0;
   rd = 0;
   bl = 0; 
 }
@@ -100,37 +113,41 @@ void setup() {
 void loop(){
   
   delay(200);
-  Serial.println();
-  Serial.println();
-  Serial.println();
-  tri = digitalRead(triangle);
-  sqr = digitalRead(square);
-  dia = digitalRead(dia);
-  rd = digitalRead(red);
-  bl = digitalRead(blue);
 
-  if(tri > 0 && sqr ==0 && dia ==0){
-      Serial.println("Triangle Detected") ;
-  }
-  else if(tri == 0 && sqr >0 && dia ==0){
-      Serial.println("Square Detected") ;
-  }
-  else if(tri == 0 && sqr ==0 && dia >0){
-      Serial.println("Diamond Detected") ;
-  }
-  else{
-   Serial.println("No Treasure"); 
-  }
+  //tri = digitalRead(triangle);
+  //sqr = digitalRead(square);
+  //dia = digitalRead(dia);
+  rd = readValue(red);
+  bl = readValue(blue);
+  int state = rd<<1 + bl;
 
-  if(rd > 0 && bl == 0){
-    Serial.println("COLOR: Red");   
+//  if(tri > 0 && sqr ==0 && dia ==0){
+//      Serial.println("Triangle Detected") ;
+//  }
+//  else if(tri == 0 && sqr >0 && dia ==0){
+//      Serial.println("Square Detected") ;
+//  }
+//  else if(tri == 0 && sqr ==0 && dia >0){
+//      Serial.println("Diamond Detected") ;
+//  }
+//  else{
+//   Serial.println("No Treasure"); 
+//  }
+  if(state != printed_State){
+      Serial.println();
+  Serial.println();
+  Serial.println();
+    printed_State = state;
+    if(rd > 0 && bl == 0){
+      Serial.println("COLOR: Red");   
+    }
+    else if(rd == 0 && bl >0){
+        Serial.println("COLOR: Blue"); 
+      }
+     else{
+        Serial.println("No Color");
+      }
   }
-  else if(rd == 0 && bl >0){
-      Serial.println("COLOR: Blue"); 
-    }
-   else{
-      Serial.println("No Color");
-    }
 }
 
 
