@@ -21,7 +21,7 @@ int readValue(int pin){
                 sum++;
             }
       } 
-      return (sum/800); 
+      return (sum/500); 
 }
 
 
