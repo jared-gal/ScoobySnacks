@@ -13,6 +13,32 @@
 static byte rd;
 static byte bl;
 
+int treasure_count = 0;
+int red_count = 0;
+int blue_count = 0;
+int VSYNC_count = 0;
+int VSYNC_last = VSYNC;
+while (VSYNC_count < 500) {
+  VSYNC_last = VSYNC;
+  delay(1);
+  if (VSYNC && VSYNC != VSYNC_last) {
+    if (treasure) {
+      if (red) {
+        treasure_count++; red_count++;
+      } else {
+        treasure_count++; blue_count++;
+      }
+    }
+  }
+}
+if (treasure_count > 375) {
+  treasure_detected;
+}
+else {
+  no_treasure_detected;
+}
+treasure_count = 0; blue_count = 0; red_count = 0; VSYNC_count = 0;
+
 
 int readValue(int pin){
   int sum = 0;
