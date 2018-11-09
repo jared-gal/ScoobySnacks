@@ -22,9 +22,9 @@ void setup() {
 }
 
 boolean checkVisited(int a[20][2], int x, int y) {
-  answer = false;
-  for(int i = 0, i <= 20, i++) {
-    if(a[j][0] == x && a[j][1] == y) {
+  boolean answer = false;
+  for(int i = 0; i <= 20; i++) {
+    if(a[i][0] == x && a[i][1] == y) {
       answer = true;
     }
   }
@@ -45,7 +45,7 @@ void loop() {
         neighbor[0][0] = n[0];
         neighbor[0][1] = n[1] -1;
         depth++;
-        if(~checkVisited) {
+        if(checkVisited == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
@@ -57,7 +57,7 @@ void loop() {
         neighbor[0][0] = n[0] + 1;
         neighbor[0][1] = n[1];
         depth++;
-        if(~checkVisited) {
+        if(checkVisited == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
@@ -69,7 +69,7 @@ void loop() {
         neighbor[0][0] = n[0];
         neighbor[0][1] = n[1] + 1;
         depth++;
-        if(~checkVisited) {
+        if(checkVisited == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
@@ -81,7 +81,7 @@ void loop() {
         neighbor[0][0] = n[0] - 1;
         neighbor[0][1] = n[1];
         depth++;
-        if(~checkVisited) {
+        if(checkVisited == false) {
           visited[vissize+1][0] = neighbor[0][0];
           visited[vissize+1][1] = neighbor[0][1];
           frontier[frontsize+1][0] = neighbor[0][0];
