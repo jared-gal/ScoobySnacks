@@ -10,6 +10,10 @@
   */
 
 #include <Servo.h>
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+#include "printf.h"
 
 //wiring specific stuff
 /*
@@ -22,9 +26,46 @@
  * Digital
  * 2 - right line sensor
  * 3 - left line sensor
-
  * 
  */
+
+int stx = 5;
+int sty = 5; //Starting position. Can obviously change.
+int frontsize = 1;
+int vissize =  1;
+int frontier[20][2]; 
+int visited[81][2];
+int neighbor[20][2];
+int mazesize = 9;
+
+ // Set up nRF24L01 radio on SPI bus plus pins 9 & 10
+
+RF24 radio(9,10);
+
+//
+// Topology
+//
+
+// Radio pipe addresses for the 2 nodes to communicate.
+const uint64_t pipes[2] = { 0x000000001aLL, 0x000000001bLL };
+static int x_start;
+static int y_start;
+
+//
+// Role management
+//
+// Set up role.  This sketch uses the same software for all the nodes
+// in this system.  Doing so greatly simplifies testing.
+//
+
+// The various roles supported by this sketch
+typedef enum { role_ping_out = 1, role_pong_back } role_e;
+
+// The debug-friendly names of those roles
+const char* role_friendly_name[] = { "invalid", "Ping out", "Pong back"};
+
+// The role of the current running sketch
+role_e role = role_pong_back;
 
 
 
@@ -149,7 +190,144 @@ void turnRight() {
   stopMoving();
 }
 
+void senddata(unsigned long new_data) {
+  radio.stopListening();
+
+    // Take the time, and send it.  This will block until complete
+    unsigned long time = millis();
+    
+    printf("Now sending data...");
+    printf("Maze data is %lu\n", new_data);
+    bool ok = radio.write(&new_data, sizeof(unsigned long) );
+    if (ok)
+      printf("ok...\n");
+    else
+      printf("failed.\n\r");
+
+    // Now, continue listening
+    radio.startListening();
+}
+
+boolean checkVisited(int a[81][2], int x, int y) {
+  boolean answer = false;
+  for(int i = 0; i <= 81; i++) {
+    if(a[i][0] == x && a[i][1] == y) {
+      answer = true;
+    }
+  }
+}
+
+int adjustfrontier(int frontier[20][2]) {
+  for(int i = 1; i < 21; i++) {
+    frontier[i-1][0] = frontier[i][0];
+    frontier[i-1][1] = frontier[i][1];
+  }
+  return frontier[20][2];
+}
+
+void goPlaces(int xt, int yt, int x, int y) {
+  //need to go west
+  if(xt > x){
+      if(orientation == 2){/*already oriented properly*/}
+      if(orientation == 1){turnLeft();}
+      if(orientation == 0){turnRight(); turnRight();}
+      if(orientation == 3){turnRight();}
+      orientation = 2;
+    }
+    //need to go east
+    if(xt < x){
+      if(orientation == 2){turnRight(); turnRight();}
+      if(orientation == 1){turnRight();}
+      if(orientation == 0){/*oriented properly*/}
+      if(orientation == 3){turnLeft();}
+      orientation = 0;
+    }
+    //need to go north
+    if(yt > y){
+      if(orientation == 2){turnRight();}
+      if(orientation == 1){}
+      if(orientation == 0){turnLeft();}
+      if(orientation == 3){turnRight();turnRight();}
+      orientation = 1;
+    }
+    //need to go south
+    if(xt > x){
+      if(orientation == 2){turnLeft();}
+      if(orientation == 1){turnRight();turnRight();}
+      if(orientation == 0){turnRight();}
+      if(orientation == 3){}
+      orientation = 3;
+    }
+}
+
 void setup() {
+  
+  //
+  // Print preamble
+  //
+
+  Serial.begin(9600);
+  printf_begin();
+  printf("\n\rRF24/examples/GettingStarted/\n\r");
+  printf("ROLE: %s\n\r",role_friendly_name[role]);
+  printf("*** PRESS 'T' to begin transmitting to the other node\n\r");
+
+  //
+  // Setup and configure rf radio
+  //
+
+  radio.begin();
+
+  // optionally, increase the delay between retries & # of retries
+  radio.setRetries(15,15);
+  radio.setAutoAck(true);
+  // set the channel
+  radio.setChannel(0x50);
+  // set the power
+  // RF24_PA_MIN=-18dBm, RF24_PA_LOW=-12dBm, RF24_PA_MED=-6dBM, and RF24_PA_HIGH=0dBm.
+  radio.setPALevel(RF24_PA_MIN);
+  //RF24_250KBPS for 250kbs, RF24_1MBPS for 1Mbps, or RF24_2MBPS for 2Mbps
+  radio.setDataRate(RF24_250KBPS);
+
+  // optionally, reduce the payload size.  seems to
+  // improve reliability
+  //radio.setPayloadSize(8);
+
+  //
+  // Open pipes to other nodes for communication
+  //
+
+  // This simple sketch opens two pipes for these two nodes to communicate
+  // back and forth.
+  // Open 'our' pipe for writing
+  // Open the 'other' pipe for reading, in position #1 (we can have up to 5 pipes open for reading)
+
+  if ( role == role_ping_out )
+  {
+    radio.openWritingPipe(pipes[0]);
+    radio.openReadingPipe(1,pipes[1]);
+  }
+  else
+  {
+    radio.openWritingPipe(pipes[1]);
+    radio.openReadingPipe(1,pipes[0]);
+  }
+
+  //
+  // Start listening
+  //
+
+  radio.startListening();
+
+  //
+  // Dump the configuration of the rf unit for debugging
+  //
+
+  radio.printDetails();
+  x_start = 1;
+  y_start = 2;
+  
+  
   myServo0.attach(A4);
   myServo1.attach(A5);
   stopMoving();
@@ -163,7 +341,11 @@ void setup() {
   pinMode(DIST_3, INPUT);
   orientation = 1;
   pos = 0;
-  Serial.begin(9600);
+
+  frontier[0][0] = stx;
+  frontier[0][1] = sty;
+  visited[0][0] = stx;
+  visited[0][1] = sty;
 }
 
 signed int adc_read() {
@@ -178,7 +360,8 @@ signed int adc_read() {
 void loop() {
   // These delays are purely for ease of reading.
     while(1) { // reduces jitter
-      String transmit = "";
+      int wall_data = 0;
+      String transmit;
       //adding the current position to the transmit string
       transmit = transmit + pos/100 + "," + pos%100;
 //      
@@ -230,18 +413,128 @@ void loop() {
           //__________________________________________________________________________________________________________________________
           if(dist_f >= thresh_wall_f){ //if there is no wall to the right, turn right
             transmit = transmit + "," + dir[orientation] + "=true";
+            if(orientation == 0)
+              wall_data += 8;
+            else if(orientation == 1)
+              wall_data += 16;
+            else if(orientation == 2)
+              wall_data += 2;
+            else if(orientation == 3)
+              wall_data += 4;
           }
 
           if(dist_l >= thresh_wall_l){ //if there is no wall to the right, turn right
             transmit = transmit + "," + dir[l_ind] + "=true";
+            if(l_ind == 0)
+              wall_data += 8;
+            else if(l_ind == 1)
+              wall_data += 16;
+            else if(l_ind == 2)
+              wall_data += 2;
+            else if(l_ind == 3)
+              wall_data += 4;
           }
 
           if(dist_r >= thresh_wall_r){ //if there is no wall to the right, turn right
             transmit = transmit + "," + dir[r_ind] + "=true";
+            if(r_ind == 0)
+              wall_data += 8;
+            else if(r_ind == 1)
+              wall_data += 16;
+            else if(r_ind == 2)
+              wall_data += 2;
+            else if(r_ind == 3)
+              wall_data += 4;
           }
 
-          Serial.println(transmit);
+          unsigned long t_data = ((pos/100)<<8) | ((pos%100)<<5) | wall_data;
+          senddata(t_data);
       }
 
+  while(frontier > 0) {
+    int n[2] = {frontier[0][0], frontier[0][1]};
+    frontier[81][2] = adjustfrontier(frontier[81][2]);
+    frontsize--; //First in first out buffer (in theory).
+    if(n[0] == mazesize && n[1] == mazesize) {
+      Serial.println("Goal!");
+      break;
+    }
+    else {
+      //North
+      if(n[1] > 1) {
+        neighbor[0][0] = n[0];
+        neighbor[0][1] = n[1] - 1;
+        //depth++;
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
+          //Insert code to turn robot in the appropriate direction and move
+          visited[vissize][0] = neighbor[0][0]; //Array indicies start at 0, so these appended locations should always be fresh spots in the array.
+          visited[vissize][1] = neighbor[0][1];
+          frontier[frontsize][0] = neighbor[0][0];
+          frontier[frontsize][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
+        }
+      }
+      //East
+      if(n[0] < mazesize) {
+        neighbor[0][0] = n[0] + 1;
+        neighbor[0][1] = n[1];
+        //depth++;
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
+          //Insert code to turn robot in the appropriate direction and move
+          visited[vissize][0] = neighbor[0][0];
+          visited[vissize][1] = neighbor[0][1];
+          frontier[frontsize][0] = neighbor[0][0];
+          frontier[frontsize][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
+        }
+      }
+      //South
+      if(n[1] < mazesize) {
+        neighbor[0][0] = n[0];
+        neighbor[0][1] = n[1] + 1;
+        //depth++;
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
+          //Insert code to turn robot in the appropriate direction and move
+          visited[vissize][0] = neighbor[0][0];
+          visited[vissize][1] = neighbor[0][1];
+          frontier[frontsize][0] = neighbor[0][0];
+          frontier[frontsize][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
+        }
+      }
+      //West
+      if(n[0] > 1) {
+        neighbor[0][0] = n[0] - 1;
+        neighbor[0][1] = n[1];
+        //depth++;
+        if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
+          //Insert code to turn robot in the appropriate direction and move
+          visited[vissize][0] = neighbor[0][0];
+          visited[vissize][1] = neighbor[0][1];
+          frontier[frontsize][0] = neighbor[0][0];
+          frontier[frontsize][1] = neighbor[0][1];
+          vissize++;
+          frontsize++;
+        }
+      }
+    }
+  }
+  
+  if ( Serial.available() )
+  {
+    char c = toupper(Serial.read());
+    //char c = 'T';
+    if ( c == 'T' && role == role_pong_back )
+    {
+      printf("*** CHANGING TO TRANSMIT ROLE -- PRESS 'R' TO SWITCH BACK\n\r");
 
+      // Become the primary transmitter (ping out)
+      role = role_ping_out;
+      radio.openWritingPipe(pipes[0]);
+      radio.openReadingPipe(1,pipes[1]);
+    }
+  } 
 }
