@@ -467,6 +467,7 @@ void loop() {
         //depth++;
         if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           //Insert code to turn robot in the appropriate direction and move
+          goPlaces(neighbor[0][0], neighbor[0][1], visited[vissize][0], visited[vissize[1]);
           visited[vissize][0] = neighbor[0][0]; //Array indicies start at 0, so these appended locations should always be fresh spots in the array.
           visited[vissize][1] = neighbor[0][1];
           frontier[frontsize][0] = neighbor[0][0];
@@ -482,6 +483,7 @@ void loop() {
         //depth++;
         if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           //Insert code to turn robot in the appropriate direction and move
+          goPlaces(neighbor[0][0], neighbor[0][1], visited[vissize][0], visited[vissize[1]);
           visited[vissize][0] = neighbor[0][0];
           visited[vissize][1] = neighbor[0][1];
           frontier[frontsize][0] = neighbor[0][0];
@@ -497,6 +499,7 @@ void loop() {
         //depth++;
         if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           //Insert code to turn robot in the appropriate direction and move
+          goPlaces(neighbor[0][0], neighbor[0][1], visited[vissize][0], visited[vissize[1]);
           visited[vissize][0] = neighbor[0][0];
           visited[vissize][1] = neighbor[0][1];
           frontier[frontsize][0] = neighbor[0][0];
@@ -512,6 +515,7 @@ void loop() {
         //depth++;
         if(checkVisited(visited, neighbor[0][0], neighbor[0][1]) == false) {
           //Insert code to turn robot in the appropriate direction and move
+          goPlaces(neighbor[0][0], neighbor[0][1], visited[vissize][0], visited[vissize[1]);
           visited[vissize][0] = neighbor[0][0];
           visited[vissize][1] = neighbor[0][1];
           frontier[frontsize][0] = neighbor[0][0];
