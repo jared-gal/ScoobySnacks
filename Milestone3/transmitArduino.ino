@@ -98,7 +98,7 @@ static const int thresh_wall_l = 190;
 
 static const String dir[4] = {"east","north","west","south"};
 volatile static int orientation;  
-volatile static int pos;
+volatile static int x_pos, y_pos;
 
 
 //Code for the QRE1113 Digital board
@@ -225,7 +225,7 @@ int adjustfrontier(int frontier[20][2]) {
   return frontier[20][2];
 }
 
-void goPlaces(int xt, int yt, int x, int y) {
+void orient(int xt, int yt, int x, int y) {
   //need to go west
   if(xt > x){
       if(orientation == 2){/*already oriented properly*/}
@@ -340,7 +340,8 @@ void setup() {
   pinMode(DIST_2, INPUT);
   pinMode(DIST_3, INPUT);
   orientation = 1;
-  pos = 0;
+  x_pos = 0;
+  y_pos = 0;
 
   frontier[0][0] = stx;
   frontier[0][1] = sty;
@@ -363,6 +364,14 @@ void loop() {
       int wall_data = 0;
       String transmit;
       //adding the current position to the transmit string
+
+  
+
+
+    //TODO: HOW TO ADD TO VISITED, add the current pos
+
+
+      
       transmit = transmit + pos/100 + "," + pos%100;
 //      
 //      s0_read = readQD(SENSOR0_PIN);
@@ -374,6 +383,19 @@ void loop() {
 //      else if(s0_read > thresh0 && s1_read < thresh1)
 //        corLeft();
 //      else if(s0_read < thresh0 && s1_read < thresh1){ // at an intersection
+
+
+        //update current position
+        if(orientation == 0)
+          x_pos = x_pos -1;
+        else if(orientation == 1)
+          y_pos = y_pos +1;
+        else if(orientation == 2)
+          x_pos = x_pos +1;
+        else if(orientation == 3)
+          y_pos = y_pos -1;
+
+
           int dist_f;
           int dist_r;
           int dist_l;
@@ -410,8 +432,7 @@ void loop() {
             }
             int l_ind = (orientation +1)%4;
 
-          //__________________________________________________________________________________________________________________________
-          if(dist_f >= thresh_wall_f){ //if there is no wall to the right, turn right
+           if(dist_f >= thresh_wall_f){ //if there is a wall to the front
             transmit = transmit + "," + dir[orientation] + "=true";
             if(orientation == 0)
               wall_data += 8;
@@ -422,8 +443,22 @@ void loop() {
             else if(orientation == 3)
               wall_data += 4;
           }
-
-          if(dist_l >= thresh_wall_l){ //if there is no wall to the right, turn right
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          //TODO: setup how to add to frontier array 
+          else{
+            if(orientation == 0)
+              //add position x_pos - 1, y_pos
+            else if(orientation == 1)
+             //add position x_pos , y_pos+1
+            else if(orientation == 2)
+              //add position x_pos + 1, y_pos
+            else if(orientation == 3)
+              //add position x_pos , y_pos-1
+            }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//_________________________________________________________________________________________________
+          if(dist_l >= thresh_wall_l){ //if there is wall to left
             transmit = transmit + "," + dir[l_ind] + "=true";
             if(l_ind == 0)
               wall_data += 8;
@@ -434,7 +469,21 @@ void loop() {
             else if(l_ind == 3)
               wall_data += 4;
           }
-
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
+          //TODO: setup how to add to frontier array 
+          else{
+            if(orientation == 0)
+              //add position x_pos , y_pos +1
+            else if(orientation == 1)
+             //add position x_pos +1 , y_pos
+            else if(orientation == 2)
+              //add position x_pos , y_pos-1
+            else if(orientation == 3)
+              //add position x_pos-1 , y_pos
+            }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//_________________________________________________________________________________________________
           if(dist_r >= thresh_wall_r){ //if there is no wall to the right, turn right
             transmit = transmit + "," + dir[r_ind] + "=true";
             if(r_ind == 0)
@@ -447,9 +496,46 @@ void loop() {
               wall_data += 4;
           }
 
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          //TODO: setup how to add to frontier array 
+          else{
+            if(orientation == 0)
+              //add position x_pos , y_pos -1
+            else if(orientation == 1)
+             //add position x_pos -1 , y_pos
+            else if(orientation == 2)
+              //add position x_pos , y_pos+1
+            else if(orientation == 3)
+              //add position x_pos+1 , y_pos
+            }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~            
+//_________________________________________________________________________________________________
           unsigned long t_data = ((pos/100)<<8) | ((pos%100)<<5) | wall_data;
           senddata(t_data);
+
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      //TODO implement how to get the next target from the frontier array
+      x_target, y_target = getTarget();
+      orient(x_target, y_target,x_pos, y_pos)
+      goStraight();
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+//_________________________________________________________________________________________________
+     
       }
+
+
+
+
+
+
+
+
+
+
+
+
 
   while(frontier > 0) {
     int n[2] = {frontier[0][0], frontier[0][1]};
