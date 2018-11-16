@@ -539,7 +539,7 @@ void loop() {
 
   while(frontier > 0) {
     int n[2] = {frontier[0][0], frontier[0][1]};
-    frontier[81][2] = adjustfrontier(frontier[81][2]);
+    frontier[20][2] = adjustfrontier(frontier[20][2]);
     frontsize--; //First in first out buffer (in theory).
     if(n[0] == mazesize && n[1] == mazesize) {
       Serial.println("Goal!");
