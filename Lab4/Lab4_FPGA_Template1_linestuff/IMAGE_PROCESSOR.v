@@ -31,10 +31,8 @@ reg  [8:0] res;
 localparam RED = 8'b111_000_00;
 localparam GREEN = 8'b000_11_00;
 localparam BLUE = 8'b000_001_11;
-localparam [15:0] red_thresh = 16'd4000;
-localparam [15:0] blue_thresh = 16'd4000;
-localparam [15:0] tri_thresh = 16'd3000;
-localparam [15:0] dia_thresh = 16'd2000;
+localparam [15:0] red_thresh = 16'd3000;
+localparam [15:0] blue_thresh = 16'd3000;
 
 wire [2:0] red_comp;
 wire [2:0] blue_comp;
@@ -50,26 +48,10 @@ reg [15:0] temp_red = 16'b0;
 reg [15:0] temp_green = 16'b0;
 
 always @ ( posedge VSYNC ) begin
-	if (temp_red > temp_blue && temp_red > temp_green) begin
-		if (temp_red > red_thresh) 
-			res <= 9'd4;
-		else if (temp_red > tri_thresh)
-			res <= 9'd5;
-		else if (temp_red > dia_thresh)
-			res <= 9'd6;
-		else
-			res <= 9'd0;
-	end
-	else if (temp_blue > temp_red && temp_blue > temp_green) begin
-		if (temp_blue > blue_thresh) 
-			res <= 9'd1;
-		else if (temp_red > tri_thresh)
-			res <= 9'd2;
-		else if (temp_red > dia_thresh)
-			res <= 9'd3;
-		else
-			res <= 9'd0;
-	end
+	if (temp_red > temp_blue && temp_red > temp_green && temp_red > red_thresh) 
+		res <= 9'd3;
+	else if (temp_blue > temp_red && temp_blue > temp_green && temp_blue > blue_thresh)
+		res <= 9'd2;
 	else
 		res <= 9'd0;
 end
