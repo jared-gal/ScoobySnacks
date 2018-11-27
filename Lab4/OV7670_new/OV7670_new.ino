@@ -4,14 +4,17 @@
 #define triangle 2
 #define square 3
 #define diamond 4
-#define red 5
-#define blue 6
+#define red 5 // actually connected to the treasure or no, pin 32
+#define blue 6 // connected to pin 33
+#define square 7 // pin 31 on FPGA
+#define tri_dia 8 // pin 30 on FPGA
 #define LED_Blue 10
 #define LED_Red 11
 
-//static byte tri;
-//static byte sqr;
-//static byte dia;
+
+static byte tri;
+static byte sqr;
+static byte dia;
 static byte rd;
 static byte bl;
 /*
@@ -106,7 +109,7 @@ void setup() {
   OV7670_write_register(0x42 , 0x00); // 0x00 for non color bar
   delay(5);
   //com7
-  OV7670_write_register(0x14 , 0x51);
+  OV7670_write_register(0x14 , 0x21);
   delay(5);
   
   //mvfp for mirror and flip screen
@@ -133,6 +136,8 @@ void setup() {
   //pinMode(diamond,INPUT);
   pinMode(red,INPUT);
   pinMode(blue,INPUT);
+  pinMode(square,INPUT);
+  pinMode(tri_dia,INPUT);
   pinMode(LED_Blue,OUTPUT);
   pinMode(LED_Red,OUTPUT);
   digitalWrite(LED_Blue, LOW);
@@ -143,6 +148,9 @@ void setup() {
   //dia = 0;
   rd = 0;
   bl = 0; 
+  sqr = 0;
+  tri = 0;
+  dia = 0;
 }
 
 void loop(){
@@ -154,6 +162,9 @@ void loop(){
   //dia = digitalRead(dia);
   rd = readValue(red);
   bl = readValue(blue);
+  sqr = readValue(square);
+  tri = readValue(tri_dia);
+  dia = (!tri && !sqr && rd) ? 1 : 0;
   int state = rd;
 
 //  if(tri > 0 && sqr ==0 && dia ==0){
@@ -177,12 +188,24 @@ void loop(){
       Serial.println("COLOR: BLUE");   
       digitalWrite(LED_Blue, HIGH);
       digitalWrite(LED_Red, LOW);
+      if (sqr)
+        Serial.println("Square");
+      else if (dia) 
+        Serial.println("Diamond");
+      else 
+        Serial.println("Triangle");
       delay(500);
     }
     else if( bl == 0){
         Serial.println("COLOR: RED"); 
         digitalWrite(LED_Blue, LOW);
         digitalWrite(LED_Red, HIGH);
+        if (sqr)
+          Serial.println("Square");
+        else if (dia) 
+          Serial.println("Diamond");
+        else 
+          Serial.println("Triangle");
         delay(500);
       }
     
