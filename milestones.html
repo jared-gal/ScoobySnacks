@@ -163,11 +163,26 @@
               
                 <p></p>
                 <p> <b> <big>Search Algorithm:</big></b> </p>
-                <p> Creation of a search algorithm started with tailoring the BFS example matlab code to work with Arduino IDE. Four 2D (20 x 2) arrays were needed. Initial, frontier, visited, and neighbor. All the arrays were initialized such that their first value would be the starting position with the exception of the neighbor array. The remaining variables to be initialized were frontsize (the number of non-zero positions in the frontier array), vissize (the number of non-zero positions in the visited array), depth, and mazesize. </p>
-                <div align = "middle"><img  src="img/searchAlgo.png" alt=""></div>
+                <p>A DFS search algorithm was first started by adjusting the MATLAB example code for BFS to work with ArduinoIDE and then converting it to DFS. Variables for the starting position, array sizes, maze size, direction, and the arrays themselves were declared. </p>
+               <div align = "middle"><img  src="img/algo_code.png" alt=""></div>
                <p><small><i>Search Algorithm Setup Code</i></small></p>
                <p>A while loop was needed that would continue until the depth was equal to the total number of positions in the maze (20 is a placeholder). A temporary array of two integers called n was set to the position in the 0th place in the frontier array, and the first position of the frontier was set to 0 to create a first in first out buffer. One check in the form of an if statement is at the beginning of the loop that checks if the positions put into the n array are at the mazesize. That would suggest the robot is done searching the maze.
               </p>
+               <p> <b> <big>Arduino Integration:</big></b> </p>
+               <p>In order to integrate the search algorithm with the robot and allow for full functionality, the implementation of the Depth First Search was embedded in the logic when at an intersection. First, the robot adds its current position to the visited array and updates its own coordinates as seen here:</p>
+                <div align = "middle"><img  src="img/visited_code.png" alt=""></div>
+               <p><small><i>Add to Visited Array Code Snippit </i></small></p>
+               <p>The robot then reads the wall sensors for all directions (Left, Right, and Straight), and depending on the presence of walls or not, the corresponding coordinates are retained in the neighbor array. To calculate the coordinates of each node to add to the neighbor array (given that there is no wall detected), the orientation is taken into account to determine if the robot is facing north, south, east, or west. Either the x or y coordinate is incremented or decremented from the current position based on this orientation and then added. The logic for this can be seen below (NOTE: Orientation is numbered counterclockwise starting at zero for East):</p>
+              <div align = "middle"><img  src="img/neighbor_code.png" alt=""></div>
+               <p><small><i>Add to Neighbor Array Code Snippit </i></small></p>
+               <p>Once the neighbor array is updated, the robot then determines a new target index to reach by polling the neighbor array for the most recent entry. If the target index is within one unit of distance (Manhattan Distance used) of the current position, the robot orients to reach the appropriate address by comparing the x and y values of its position, the target position, and its current orientation. However, if the target is greater than one unit away, then the robot begins to backtrack through the visited array until the target is within one intersection. The function that handles this orienting can be seen below:</p>
+               <div align = "middle"><img  src="img/orient_code.png" alt=""></div>
+               <p><small><i>Align Function Code Snippit </i></small></p>
+               <p>After orienting, the robot continues straight until it reaches the next intersection. The outlined process above is repeated continuously until all of the squares have been visited, at which point it has then explored all possible locations. A demonstration of operation can be seen in the videos below:</p>
+               
+               <p><small><i>Maze 1 Exploration </i></small></p>
+               
+               <p><small><i>Maze 2 Exploration </i></small></p>
                
           </div>
         </div>
