@@ -69,14 +69,15 @@ int visited[81][2];
 int neighbor[20][2];
 int mazesize = 9;
 
-const static int DIST_1 = A1; // front wall sensor
-const static int DIST_2 = A3; //side wall sensor
-const static int DIST_3 = A2;
-const static int SERVO1 = A4;
-const static int SERVO2 = A5;
+const static int DIST_1 = A2; // front wall sensor
+const static int DIST_2 = A0; //right wall sensor
+const static int DIST_3 = A5; //left wall sensor
+const static int SERVO1 = A1;
+const static int SERVO2 = A4;
+boolean usedVisited = 0;
 
-#define SENSOR0_PIN 2 // right
-#define SENSOR1_PIN 3 // left
+#define SENSOR0_PIN 3 // right
+#define SENSOR1_PIN 2 // left
 
 Servo myServo0;
 Servo myServo1;
@@ -407,11 +408,11 @@ void loop() {
        
         //update current position
         if(orientation == 0)
-          x_pos = x_pos -1;
+          x_pos = x_pos + 1;
         else if(orientation == 1)
           y_pos = y_pos +1;
         else if(orientation == 2)
-          x_pos = x_pos +1;
+          x_pos = x_pos - 1;
         else if(orientation == 3)
           y_pos = y_pos -1;
         // add current position to visited
@@ -476,14 +477,14 @@ void loop() {
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
           //TODO: setup how to add to frontier array 
-          else{
+          else if(!usedVisited){
             if(orientation == 0){
               //add position x_pos , y_pos +1
               neighbor[nsize][0] = x_pos;
               neighbor[nsize][1] = y_pos+1;}
             else if(orientation == 1){
              //add position x_pos +1 , y_pos
-              neighbor[nsize][0] = x_pos+1;
+              neighbor[nsize][0] = x_pos-1;
               neighbor[nsize][1] = y_pos;}
             else if(orientation == 2){
               neighbor[nsize][0] = x_pos;
@@ -491,7 +492,7 @@ void loop() {
               //add position x_pos , y_pos-1
             else if(orientation == 3){
               //add position x_pos-1 , y_pos
-              neighbor[nsize][0] = x_pos-1;
+              neighbor[nsize][0] = x_pos+1;
               neighbor[nsize][1] = y_pos;}
               Serial.println("coordinates to add:");
               Serial.println(neighbor[nsize][0]);
@@ -519,14 +520,14 @@ void loop() {
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           //TODO: setup how to add to frontier array 
-          else{
+          else if (!usedVisited){
             if(orientation == 0){
               //add position x_pos , y_pos -1
               neighbor[nsize][0] = x_pos;
               neighbor[nsize][1] = y_pos-1;}
             else if(orientation == 1){
               //add position x_pos -1 , y_pos
-              neighbor[nsize][0] = x_pos-1;
+              neighbor[nsize][0] = x_pos+1;
               neighbor[nsize][1] = y_pos;}
             else if(orientation == 2){
               //add position x_pos , y_pos+1
@@ -534,7 +535,7 @@ void loop() {
               neighbor[nsize][1] = y_pos+1;}
             else if(orientation == 3){
               //add position x_pos+1 , y_pos
-              neighbor[nsize][0] = x_pos+1;
+              neighbor[nsize][0] = x_pos-1;
               neighbor[nsize][1] = y_pos;}
               Serial.println("coordinates to add:");
               Serial.println(neighbor[nsize][0]);
@@ -563,24 +564,24 @@ void loop() {
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           //TODO: setup how to add to frontier array 
-          else{
+          else if(!usedVisited){
             if(orientation == 0){
               //add position x_pos - 1, y_pos
-              neighbor[nsize][0] = x_pos-1;
+              neighbor[nsize][0] = x_pos+1;
               neighbor[nsize][1] = y_pos;
-              }
-            else if(orientation == 1){
+             } else if(orientation == 1){
              //add position x_pos , y_pos+1
              neighbor[nsize][0] = x_pos;
-             neighbor[nsize][1] = y_pos+1;}
-            else if(orientation == 2){
+             neighbor[nsize][1] = y_pos+1;
+            } else if(orientation == 2){
               //add position x_pos + 1, y_pos
-              neighbor[nsize][0] = x_pos+1;
-              neighbor[nsize][1] = y_pos;}
-            else if(orientation == 3){
+              neighbor[nsize][0] = x_pos-1;
+              neighbor[nsize][1] = y_pos;
+            } else if(orientation == 3){
               //add position x_pos , y_pos-1
               neighbor[nsize][0] = x_pos;
-              neighbor[nsize][1] = y_pos-1;}
+              neighbor[nsize][1] = y_pos-1;
+            }
               Serial.println("coordinates to add:");
               Serial.println(neighbor[nsize][0]);
               Serial.println(neighbor[nsize][1]);
@@ -595,12 +596,13 @@ void loop() {
                   nsize--;
                   orient(neighbor[nsize][0],neighbor[nsize][1],x_pos,y_pos); 
                   goStraight();
-                              
+                  usedVisited = 0;
           }
           else{
             orient(visited[vissize-2][0], visited[vissize-2][1], x_pos, y_pos);
             goStraight();
             vissize--;
+            usedVisited = 1;
             }
           
           

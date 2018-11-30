@@ -28,11 +28,7 @@
 
 RF24 radio(9,10);
 
-//
-// Topology
-//
-
-// Radio pipe addresses for the 2 nodes to communicate.
+//Radio pipe addresses for the 2 nodes to communicate.
 const uint64_t pipes[2] = { 0x000000001aLL, 0x000000001bLL };
 static int x_start;
 static int y_start;
