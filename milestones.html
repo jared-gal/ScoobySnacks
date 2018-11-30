@@ -166,8 +166,17 @@
                 <p>A DFS search algorithm was first started by adjusting the MATLAB example code for BFS to work with ArduinoIDE and then converting it to DFS. Variables for the starting position, array sizes, maze size, direction, and the arrays themselves were declared. </p>
                <div align = "middle"><img  src="img/algo_code.png" alt=""></div>
                <p><small><i>Search Algorithm Setup Code</i></small></p>
-               <p>A while loop was needed that would continue until the depth was equal to the total number of positions in the maze (20 is a placeholder). A temporary array of two integers called n was set to the position in the 0th place in the frontier array, and the first position of the frontier was set to 0 to create a first in first out buffer. One check in the form of an if statement is at the beginning of the loop that checks if the positions put into the n array are at the mazesize. That would suggest the robot is done searching the maze.
-              </p>
+               <p>A  loop was created that would continue as long as the frontier array was not empty. A temporary variable popped the first element of the frontier out, and then the size of the frontier was decreased as to create a first in first out (FIFO) buffer. </p>
+               <div align = "middle"><img  src="img/loop_code.png" alt=""></div>
+               <p><small><i>Search Algorithm Execution Loop Code</i></small></p>
+               <p>Afterwards a group of four if statements (one for each cardinal direction) would move the robot in the desired direction continuously as well as update the arrays appropriately until the robot could no longer move in said direction. At that point, the direction variable would update and the robot would move in a new direction until it could no longer do so. </p>
+               <div align = "middle"><img  src="img/cond_code.png" alt=""></div>
+               <p><small><i>Search Algorithm Conditionals Code</i></small></p>
+               <p>In order to keep the robot from revisiting locations, a function called checkVisited would run each time the robot attempted to move that cycles through the visited array and checks if the proposed new location was already visited.</p>
+               <div align = "middle"><img  src="img/vis_code.png" alt=""></div>
+               <p><small><i>Visited Check Code</i></small></p>
+               
+               
                <p> <b> <big>Arduino Integration:</big></b> </p>
                <p>In order to integrate the search algorithm with the robot and allow for full functionality, the implementation of the Depth First Search was embedded in the logic when at an intersection. First, the robot adds its current position to the visited array and updates its own coordinates as seen here:</p>
                 <div align = "middle"><img  src="img/visited_code.png" alt=""></div>
