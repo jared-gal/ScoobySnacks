@@ -224,8 +224,24 @@
                
                <p>It turns out that this method produces memory issues with the FPGA and would require other methods to compute the convolution in a smart way.  Since we would still need to perform processing on the edge exposed image, we instead decide to directly process the output image to achieve some basic functionality first.To distinguish between different shapes, we accumulate color counts at three horizontal lines across the image at different heights.  If the color counts are all approximately the same, we will know that the shape is a square.  If one color count is significantly different from the other, then we know that the shape is either a diamond or triangle.  Our implementation is able to reuse some of the code developed for color detection.  For three particular Y_ADDR, we accumulate counts for both the blue and red colors.  Then, we use another always block that is triggered by VSYNC to check the count values at the end of every image. In this block, we determine if the absolute value of the count differences between each of the three Y_ADDR is close enough to be a square, otherwise we classify it as a triangle or diamond. The following code demonstrates our method and implementation:</p>
                 
+               <div align = "middle"><img  src="img/shape_detect_code_1.png" alt=""></div>
+               <p><small><i>Edge Detection Code Snippit 1</i></small></p>
+               
+               <p>Always block to accumulate color counts for each line at different heights</p>
+               
+               <div align = "middle"><img  src="img/shape_detect_code_2.png" alt=""></div>
+               <p><small><i>Edge Detection Code Snippit 2</i></small></p>
+               
+               <p>Difference module to calculate absolute value of differences between line counts for each color.</p>
+               
                <div align = "middle"><img  src="img/shape_detect_code.png" alt=""></div>
-               <p><small><i>Edge Detection Code Snippit </i></small></p>
+               <p><small><i>Edge Detection Code Snippit 3 </i></small></p>
+               
+               <p>Second part of always block checks difference between line counts and sets res[3] to send shape information to Arduino</p>
+               
+               <p> The demonstration of treasure detection and color determination by the Arduino was accomplished using two LEDs. A green LED was lit up when a blue treasure was detected (the color mismatch was due to the lab not having any blue LEDs), a red LED is flashed when a red treasure is detected, and finally no LED is lit when there is no treasure detected. The results of the test can be seen in the following video. </p>
+                <div style="position:relative;height:0;padding-bottom:75.0%"><iframe src="https://www.youtube.com/embed/D4qdAHJ7XUc?ecver=2" width="480" height="360" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
+                <div align = "middle"><p><small><i>Treasure Detection Video</i></small></p></div>
               
                
           </div>
