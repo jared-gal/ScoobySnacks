@@ -194,6 +194,40 @@
                <div style="position:relative;height:0;padding-bottom:75.0%"><iframe src="https://www.youtube.com/embed/Vhf6ZWB_zI4?ecver=2" width="480" height="360" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
                <p><small><i>Maze 2 Exploration </i></small></p>
                
+               
+               
+               
+               
+               <p><b><big> MILESTONE 4:</big></b><p>
+             <p> <b> <big>Objectives:</big></b> </p>
+                <p>One: Robot which can detect when there are/are not treasures
+                </p>
+                <p>Two: Robot which can successfully distinguish between red and blue treasures
+                </p>
+               <p>Three: Robot which can successfully distinguish a square, triangle, and diamond shape
+                </p>
+              
+                <p></p>
+                <p> <b> <big>Detecting Treasures and Their Color:</big></b> </p>
+                <p>Our method for detecting treasures uses the same method as described in Lab 4. </p>
+               
+               <p><small><i>Color and Treasure Detection</i></small></p>
+               
+               <p> <b> <big>Distinguishing Square, Triangle, and Diamond Shapes:</big></b> </p>
+               <p>In order to detect shapes, it is helpful to implement good edge detection, which we do using grayscale filtering. We first attempt to do edge detection using an image convolution that will expose sharp edges in the camera output. To implement this, we compute each output pixel value by applying a convolution matrices to the input image pixels. The particular convolution kernel we attempt to mimic is the following:</p>
+                
+               <div align = "middle"><img  src="img/sobel.png" alt=""></div>
+               <p><small><i>Sobel Filter </i></small></p>
+               
+               
+               <p>To compute the output pixel value, we use a simpler version of the three by three matrix and instead just use the middle row to compute the output. For example, to compute the output values in the 3rd column, we multiply those values by 8 and elementwise subtract the values in the 2nd column and 4th column.  The edge values at the first and last column are computed using two columns instead of three.  In our implementation, we need to instantiate three different M9K blocks to compute the output values since each block contains only one read port. As we receive pixels from the camera, we write the values to each of the three memory blocks. Thus when we compute the output pixel values we can read from each of the three memory blocks and apply the convolution. </p>
+               
+               <p>It turns out that this method produces memory issues with the FPGA and would require other methods to compute the convolution in a smart way.  Since we would still need to perform processing on the edge exposed image, we instead decide to directly process the output image to achieve some basic functionality first.To distinguish between different shapes, we accumulate color counts at three horizontal lines across the image at different heights.  If the color counts are all approximately the same, we will know that the shape is a square.  If one color count is significantly different from the other, then we know that the shape is either a diamond or triangle.  Our implementation is able to reuse some of the code developed for color detection.  For three particular Y_ADDR, we accumulate counts for both the blue and red colors.  Then, we use another always block that is triggered by VSYNC to check the count values at the end of every image. In this block, we determine if the absolute value of the count differences between each of the three Y_ADDR is close enough to be a square, otherwise we classify it as a triangle or diamond. The following code demonstrates our method and implementation:</p>
+                
+               <div align = "middle"><img  src="img/orient_code.png" alt=""></div>
+               <p><small><i>Edge Detection Code Snippit </i></small></p>
+              
+               
           </div>
         </div>
       </div>
