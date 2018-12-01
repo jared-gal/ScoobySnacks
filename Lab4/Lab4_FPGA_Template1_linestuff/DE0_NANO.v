@@ -46,9 +46,6 @@ wire [7:0]	VGA_COLOR_IN;
 wire [9:0]	VGA_PIXEL_X;
 wire [9:0]	VGA_PIXEL_Y;
 wire [7:0]	MEM_OUTPUT;
-wire [7:0]  MEM_OUTPUT1;
-wire [7:0]  MEM_OUTPUT2;
-wire [7:0]  MEM_OUTPUT3;
 wire			VGA_VSYNC_NEG;
 wire			VGA_HSYNC_NEG;
 reg			VGA_READ_MEM_EN;
@@ -86,44 +83,11 @@ Dual_Port_RAM_M9K mem(
 	.output_data(MEM_OUTPUT)
 );
 
-///////* M9K Module *///////
-Dual_Port_RAM_M9K mem1(
-	.input_data(pixel_data_RGB332),
-	.w_addr(WRITE_ADDRESS),
-	.r_addr(READ_ADDRESS-15'd1),
-	.w_en(W_EN),
-	.clk_W(c2_sig),
-	.clk_R(c1_sig), // DO WE NEED TO READ SLOWER THAN WRITE??
-	.output_data(MEM_OUTPUT1)
-);
-
-///////* M9K Module *///////
-Dual_Port_RAM_M9K mem2(
-	.input_data(pixel_data_RGB332),
-	.w_addr(WRITE_ADDRESS),
-	.r_addr(READ_ADDRESS-15'd2),
-	.w_en(W_EN),
-	.clk_W(c2_sig),
-	.clk_R(c1_sig), // DO WE NEED TO READ SLOWER THAN WRITE??
-	.output_data(MEM_OUTPUT2)
-);
-
-///////* M9K Module *///////
-/*Dual_Port_RAM_M9K mem3(
-	.input_data(pixel_data_RGB332),
-	.w_addr(WRITE_ADDRESS),
-	.r_addr(READ_ADDRESS),
-	.w_en(W_EN),
-	.clk_W(c2_sig),
-	.clk_R(c1_sig), // DO WE NEED TO READ SLOWER THAN WRITE??
-	.output_data(MEM_OUTPUT3)
-);*/
-
 ///////* VGA Module *///////
 VGA_DRIVER driver (
 	.RESET(VGA_RESET),
 	.CLOCK(c1_sig),
-	.PIXEL_COLOR_IN(VGA_READ_MEM_EN ? filteredImage : BLUE),
+	.PIXEL_COLOR_IN(VGA_READ_MEM_EN ? MEM_OUTPUT : BLUE),
 	.PIXEL_X(VGA_PIXEL_X),
 	.PIXEL_Y(VGA_PIXEL_Y),
 	.PIXEL_COLOR_OUT({GPIO_0_D[9],GPIO_0_D[11],GPIO_0_D[13],GPIO_0_D[15],GPIO_0_D[17],GPIO_0_D[19],GPIO_0_D[21],GPIO_0_D[23]}),
@@ -147,28 +111,10 @@ DOWNSAMPLER down (
 	.data_val(data_valid),
 	.clk(PCLK),
 	.pixel_in({D7, D6, D5, D4, D3, D2, D1, D0}),
+	.HREF(HREF),
 	.pixel_out(pixel_data_RGB332),
-	.x(X_ADDR),
-	.y(Y_ADDR),
 	.W_EN(W_EN)
 );
-
-reg [7:0] filteredImage;
-
-wire [7:0] x;
-wire [7:0] x_1;
-wire [7:0] x_2;
-
-assign x = MEM_OUTPUT;
-assign x_1 = MEM_OUTPUT1;
-assign x_2 = MEM_OUTPUT2;
-
-always @ (posedge c1_sig) begin
-	filteredImage = x + x_1 + x_2;
-	//filteredImage = 8*x_1[7:5] - x[7:5] - x_2[7:5];
-	//filteredImage = filteredImage + 8*x_1[4:3] - x[4:3] - x_2[4:3];
-	//filteredImage = filteredImage + 8*x_1[2:0] - x[2:0] - x_2[2:0];
-end
 
 assign GPIO_0_D[1] = c0_sig; // output 24 MHz clock to camera
 
@@ -191,27 +137,17 @@ assign HREF = GPIO_1_D[11];
 assign PCLK = GPIO_1_D[12];
 assign VSYNC = GPIO_1_D[10];
 
-assign GPIO_0_D[32] = (RESULT > 9'b0) ? 1'b1 : 1'b0; // treasure
-assign GPIO_0_D[33] = (RESULT >= 9'd4) ? 1'b1 : 1'b0; // color (red is 1)
-assign GPIO_0_D[31] = (RESULT == 9'd4 || RESULT == 9'd1) ? 1'b1 : 1'b0; // 1 is square
-assign GPIO_0_D[30] = (RESULT == 9'd5 || RESULT == 9'd2) ? 1'b1 : 1'b0; // 1 is triangle
-
-reg [14:0] y_abs;
+assign GPIO_0_D[32] = (RESULT > 9'b0) ? 1'b1 : 1'b0;
+assign GPIO_0_D[33] = (RESULT == 9'd3) ? 1'b1 : 1'b0;
 
 always @ (negedge HREF or posedge VSYNC) begin
-	if (VSYNC) begin
-		y_abs = 0;
-		Y_ADDR = 0;
-	end
+	if (VSYNC)
+		Y_ADDR <= 0;
 	else if (!HREF) begin 
-		y_abs = y_abs + 1'd1;
-		if (y_abs > 32 && y_abs < 108)
-			Y_ADDR = Y_ADDR + 1;
+		Y_ADDR <= Y_ADDR + 1'd1;
 	end
-	else begin
-		y_abs = y_abs;
-		Y_ADDR = Y_ADDR;
-	end
+	else 
+		Y_ADDR <= Y_ADDR;
 end
 
 always @ (posedge PCLK) begin
@@ -260,11 +196,8 @@ always @ (posedge PCLK) begin
 end	
 
 ///////* Update Read Address *///////
-always @ (VGA_PIXEL_X, VGA_PIXEL_Y) begin	
-		if ( VGA_PIXEL_X > 44 && VGA_PIXEL_X < 132 && VGA_PIXEL_Y > 32 && VGA_PIXEL_Y < 108)
-				READ_ADDRESS = (VGA_PIXEL_X + VGA_PIXEL_Y*`SCREEN_WIDTH);
-		else
-				READ_ADDRESS = 2;
+always @ (VGA_PIXEL_X, VGA_PIXEL_Y) begin
+		READ_ADDRESS = (VGA_PIXEL_X + VGA_PIXEL_Y*`SCREEN_WIDTH);
 		if(VGA_PIXEL_X>(`SCREEN_WIDTH-1) || VGA_PIXEL_Y>(`SCREEN_HEIGHT-1))begin
 				VGA_READ_MEM_EN = 1'b0;
 		end

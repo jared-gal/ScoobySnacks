@@ -28,11 +28,7 @@
 
 RF24 radio(9,10);
 
-//
-// Topology
-//
-
-// Radio pipe addresses for the 2 nodes to communicate.
+//Radio pipe addresses for the 2 nodes to communicate.
 const uint64_t pipes[2] = { 0x000000001aLL, 0x000000001bLL };
 static int x_start;
 static int y_start;
@@ -60,7 +56,7 @@ void setup(void)
   // Print preamble
   //
 
-  Serial.begin(9600);
+  Serial.begin(57600);
   printf_begin();
   printf("\n\rRF24/examples/GettingStarted/\n\r");
   printf("ROLE: %s\n\r",role_friendly_name[role]);
