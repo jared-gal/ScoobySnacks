@@ -69,7 +69,7 @@ int visited[81][2];
 int neighbor[20][2];
 int mazesize = 9;
 
-const static int DIST_1 = A2; // front wall sensor
+const static int DIST_1 = A3; // front wall sensor
 const static int DIST_2 = A0; //right wall sensor
 const static int DIST_3 = A5; //left wall sensor
 const static int SERVO1 = A1;
@@ -91,8 +91,8 @@ volatile int s0_read;
 volatile int s1_read;
 
 
-static const int thresh0 = 1000; // threshold for sensor 0
-static const int thresh1 = 1000; // threshold for sensor 1
+static const int thresh0 = 600; // threshold for sensor 0
+static const int thresh1 = 600; // threshold for sensor 1
 static const int thresh_wall_f = 150; 
 static const int thresh_wall_r = 150; 
 static const int thresh_wall_l = 150; 
@@ -305,8 +305,8 @@ void setup() {
   y_start = 2;
   
   
-  myServo0.attach(A4);
-  myServo1.attach(A5);
+  myServo0.attach(SERVO1);
+  myServo1.attach(SERVO2);
   stopMoving();
   //detect_660();
   //turnCount = 0;
@@ -381,8 +381,8 @@ void loop() {
       s0_read = readQD(SENSOR0_PIN);
       s1_read = readQD(SENSOR1_PIN);
       
-      /* Thresholding
-      Serial.print("Sensor0: ");
+      // Thresholding
+      /*Serial.print("Sensor0: ");
       Serial.print(s0_read);
       Serial.println();
       Serial.print("Sensor1: ");
@@ -424,14 +424,14 @@ void loop() {
           int dist_r;
           int dist_l;
           int dist_tmp;
-          ADMUX = 0x41; // use adc1
+          ADMUX = 0x43; // use adc1
           dist_tmp = adc_read(); // this is garbage value
           delay(10); // wait before reading again so that mux sets
           for(int i = 0; i<16; i++){
             dist_tmp = adc_read(); // useful value
             dist_f += dist_tmp;
           }
-          ADMUX = 0x43;
+          ADMUX = 0x40;
           dist_tmp = adc_read();
           delay(10);
           for(int i = 0; i<16; i++){
@@ -439,7 +439,7 @@ void loop() {
             dist_tmp = adc_read();
             dist_r += dist_tmp;
           }
-          ADMUX = 0x42;
+          ADMUX = 0x45;
           dist_tmp = adc_read();
           delay(10);
           for(int i = 0; i<16; i++){
@@ -451,10 +451,10 @@ void loop() {
           dist_r = dist_r>>4;
           dist_f = dist_f>>4;
 
-          /*Serial.println("Left, Right, Front");
+          Serial.println("Left, Right, Front");
           Serial.println(dist_l);
           Serial.println(dist_r);
-          Serial.println(dist_f);*/
+          Serial.println(dist_f);
           
           int r_ind = orientation - 1;
           if(r_ind < 0){
