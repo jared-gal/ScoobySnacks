@@ -113,6 +113,7 @@ static const int thresh_ir = 125;
 static const String dir[4] = {"east","north","west","south"};
 volatile static int orientation;  
 volatile static int x_pos, y_pos;
+volatile static int wall_data = 0;
 //volatile static int intersectionCnt = 0;
 
 //Code for the QRE1113 Digital board
@@ -204,6 +205,148 @@ void turnRight() {
   stopMoving();
 }
 
+void goLeft(int dist_l, int l_ind) {
+          if(dist_l >= thresh_wall_l){ //if there is wall to left
+            if(l_ind == 0)
+              wall_data += 8;
+            else if(l_ind == 1)
+              wall_data += 16;
+            else if(l_ind == 2)
+              wall_data += 2;
+            else if(l_ind == 3)
+              wall_data += 4;
+          }
+
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
+          //TODO: setup how to add to frontier array 
+          else /*if(!usedVisited)*/{
+            //if(!checkVisited){
+              if(orientation == 0){
+                //add position x_pos , y_pos +1
+                neighbor[nsize][0] = x_pos;
+                neighbor[nsize][1] = y_pos+1;}
+              else if(orientation == 1){
+               //add position x_pos +1 , y_pos
+                neighbor[nsize][0] = x_pos-1;
+                neighbor[nsize][1] = y_pos;}
+              else if(orientation == 2){
+                neighbor[nsize][0] = x_pos;
+                neighbor[nsize][1] = y_pos-1;}
+                //add position x_pos , y_pos-1
+              else if(orientation == 3){
+                //add position x_pos-1 , y_pos
+                neighbor[nsize][0] = x_pos+1;
+                neighbor[nsize][1] = y_pos;
+              }
+                /*
+                 
+                Serial.println("coordinates to add: (");
+                Serial.print(neighbor[nsize][0]);
+                Serial.print(" , ");
+                Serial.print(neighbor[nsize][1]);
+                Serial.print(")");
+                */
+                nsize++;
+            //}
+
+            }
+}
+
+void goRight(int dist_r, int r_ind) {
+            if(dist_r >= thresh_wall_r){ //if there is no wall to the right, turn right
+            //transmit = transmit + "," + dir[r_ind] + "=true";
+            if(r_ind == 0)
+              wall_data += 8;
+            else if(r_ind == 1)
+              wall_data += 16;
+            else if(r_ind == 2)
+              wall_data += 2;
+            else if(r_ind == 3)
+              wall_data += 4;
+          }
+
+
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          //TODO: setup how to add to frontier array 
+          else /*if (!usedVisited)*/{
+            //if(!checkVisited){
+              if(orientation == 0){
+                //add position x_pos , y_pos -1
+                neighbor[nsize][0] = x_pos;
+                neighbor[nsize][1] = y_pos-1;}
+              else if(orientation == 1){
+                //add position x_pos -1 , y_pos
+                neighbor[nsize][0] = x_pos+1;
+                neighbor[nsize][1] = y_pos;}
+              else if(orientation == 2){
+                //add position x_pos , y_pos+1
+                neighbor[nsize][0] = x_pos;
+                neighbor[nsize][1] = y_pos+1;}
+              else if(orientation == 3){
+                //add position x_pos+1 , y_pos
+                neighbor[nsize][0] = x_pos-1;
+                neighbor[nsize][1] = y_pos;
+              }
+              /*
+                Serial.println("coordinates to add:");
+                Serial.println(neighbor[nsize][0]);
+                Serial.println(neighbor[nsize][1]);
+                */
+                nsize++;
+            //}
+              //adjustfrontier();
+
+            }
+}
+
+void goForward(int dist_f) {
+             if(dist_f >= thresh_wall_f){ //if there is a wall to the front
+            
+            if(orientation == 0)
+              wall_data += 8;
+            else if(orientation == 1)
+              wall_data += 16;
+            else if(orientation == 2)
+              wall_data += 2;
+            else if(orientation == 3)
+              wall_data += 4;
+          } else {
+ 
+//_________________________________________________________________________________________________
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          //TODO: setup how to add to frontier array 
+          //else if(!usedVisited){
+            //if(!checkVisited){
+              //digitalWrite(5,HIGH);
+              if(orientation == 0){
+                //add position x_pos - 1, y_pos
+                neighbor[nsize][0] = x_pos+1;
+                neighbor[nsize][1] = y_pos;
+               } else if(orientation == 1){
+               //add position x_pos , y_pos+1
+               neighbor[nsize][0] = x_pos;
+               neighbor[nsize][1] = y_pos+1;
+              } else if(orientation == 2){
+                //add position x_pos + 1, y_pos
+                neighbor[nsize][0] = x_pos-1;
+                neighbor[nsize][1] = y_pos;
+              } else if(orientation == 3){
+                //add position x_pos , y_pos-1
+                neighbor[nsize][0] = x_pos;
+                neighbor[nsize][1] = y_pos-1;
+              }
+              /*
+                Serial.println("coordinates to add:");
+                Serial.println(neighbor[nsize][0]);
+                Serial.println(neighbor[nsize][1]);
+                */
+                nsize++;
+            //}
+          }
+}
+
 boolean checkVisited( int x, int y) {
   boolean answer = false;
   for(int i = 0; i < 81; i++) {
@@ -246,7 +389,7 @@ int ir_fft () {
 
 void orient(int xt, int yt, int x, int y) {
   //need to go west
-  Serial.println("orient");
+  //Serial.println("orient");
   goStraight();
   //need to go east
   if(xt > x){
@@ -436,7 +579,7 @@ void loop() {
   
   // These delays are purely for ease of reading.
     while(1) { // reduces jitter
-      int wall_data = 0;
+      
 
       count++; // variable 
       int ir_fft_val =0;
@@ -491,7 +634,7 @@ void loop() {
         //delay(200);
         //intersectionCnt++;
         stopMoving();
-       
+         wall_data = 0;
         //update current position
         if(orientation == 0)
           x_pos = x_pos + 1;
@@ -538,12 +681,12 @@ void loop() {
           dist_r = dist_r>>4;
           dist_f = dist_f>>4;
           
-          
+          /*
           Serial.println("Left, Right, Front");
           Serial.println(dist_l);
           Serial.println(dist_r);
           Serial.println(dist_f);
-          
+          */
           if (dist_l > thresh_wall_l) 
             digitalWrite(4, HIGH);
           if (dist_f > thresh_wall_f)
@@ -556,147 +699,30 @@ void loop() {
               r_ind = r_ind +4;
             }
             int l_ind = (orientation +1)%4;
-
+/*
            Serial.println("Current position");
            Serial.println(x_pos);
            Serial.println(y_pos);
-
+*/
           //_________________________________________________________________________________________________
-          if(dist_l >= thresh_wall_l){ //if there is wall to left
-            if(l_ind == 0)
-              wall_data += 8;
-            else if(l_ind == 1)
-              wall_data += 16;
-            else if(l_ind == 2)
-              wall_data += 2;
-            else if(l_ind == 3)
-              wall_data += 4;
-          }
 
-//_________________________________________________________________________________________________
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
-          //TODO: setup how to add to frontier array 
-          else /*if(!usedVisited)*/{
-            //if(!checkVisited){
-              if(orientation == 0){
-                //add position x_pos , y_pos +1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos+1;}
-              else if(orientation == 1){
-               //add position x_pos +1 , y_pos
-                neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;}
-              else if(orientation == 2){
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos-1;}
-                //add position x_pos , y_pos-1
-              else if(orientation == 3){
-                //add position x_pos-1 , y_pos
-                neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;
-              }
-                Serial.println("coordinates to add: (");
-                Serial.print(neighbor[nsize][0]);
-                Serial.print(" , ");
-                Serial.print(neighbor[nsize][1]);
-                Serial.print(")");
-                nsize++;
-            //}
+        if (count % 3 == 0){
+          goLeft(dist_l, l_ind);
+          goRight(dist_r, r_ind);
+          goForward(dist_f);
+        }
+        else if (count % 3 == 1) {
+          goForward(dist_f);
+          goLeft(dist_l, l_ind);
+          goRight(dist_r, r_ind);
+        }
+        else {
+          goForward(dist_f);
+          goLeft(dist_l, l_ind);
+          goRight(dist_r, r_ind);
+          
+        }
 
-            }
-        
-//~~~~~~~~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//_________________________________________________________________________________________________
-          if(dist_r >= thresh_wall_r){ //if there is no wall to the right, turn right
-            //transmit = transmit + "," + dir[r_ind] + "=true";
-            if(r_ind == 0)
-              wall_data += 8;
-            else if(r_ind == 1)
-              wall_data += 16;
-            else if(r_ind == 2)
-              wall_data += 2;
-            else if(r_ind == 3)
-              wall_data += 4;
-          }
-
-
-//_________________________________________________________________________________________________
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          //TODO: setup how to add to frontier array 
-          else /*if (!usedVisited)*/{
-            //if(!checkVisited){
-              if(orientation == 0){
-                //add position x_pos , y_pos -1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos-1;}
-              else if(orientation == 1){
-                //add position x_pos -1 , y_pos
-                neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;}
-              else if(orientation == 2){
-                //add position x_pos , y_pos+1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos+1;}
-              else if(orientation == 3){
-                //add position x_pos+1 , y_pos
-                neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;
-              }
-                Serial.println("coordinates to add:");
-                Serial.println(neighbor[nsize][0]);
-                Serial.println(neighbor[nsize][1]);
-                nsize++;
-            //}
-              //adjustfrontier();
-
-            }
-         
- 
-//~~~~~~~~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~            
-//_________________________________________________________________________________________________
-           if(dist_f >= thresh_wall_f){ //if there is a wall to the front
-            
-            if(orientation == 0)
-              wall_data += 8;
-            else if(orientation == 1)
-              wall_data += 16;
-            else if(orientation == 2)
-              wall_data += 2;
-            else if(orientation == 3)
-              wall_data += 4;
-          } else {
- 
-//_________________________________________________________________________________________________
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-          //TODO: setup how to add to frontier array 
-          //else if(!usedVisited){
-            //if(!checkVisited){
-              //digitalWrite(5,HIGH);
-              if(orientation == 0){
-                //add position x_pos - 1, y_pos
-                neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;
-               } else if(orientation == 1){
-               //add position x_pos , y_pos+1
-               neighbor[nsize][0] = x_pos;
-               neighbor[nsize][1] = y_pos+1;
-              } else if(orientation == 2){
-                //add position x_pos + 1, y_pos
-                neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;
-              } else if(orientation == 3){
-                //add position x_pos , y_pos-1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos-1;
-              }
-                Serial.println("coordinates to add:");
-                Serial.println(neighbor[nsize][0]);
-                Serial.println(neighbor[nsize][1]);
-                nsize++;
-            //}
-          }
               //adjustfrontier();
            //}
             
@@ -715,14 +741,14 @@ void loop() {
             usedVisited = 1;
             }
           
-          
-          
+          delay(40);
+          Serial.println(x_pos);
           unsigned long t_data = ((x_pos)<<8) | ((y_pos)<<5) | wall_data;
           senddata(t_data);
 
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+/*
      Serial.print("target:  ");
      Serial.print(neighbor[nsize][0]);
      Serial.println(neighbor[(nsize)][1]);
@@ -731,7 +757,7 @@ void loop() {
      Serial.print("current:  ");
      Serial.print(visited[(vissize-1)][0]);
      Serial.println(visited[(vissize-1)][1]);
-
+*/
       }
     }
 }
