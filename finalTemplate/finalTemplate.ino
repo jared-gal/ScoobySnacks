@@ -5,7 +5,7 @@
 #include "RF24.h"
 #include "printf.h"
 #define LOG_OUT 1 // use the log output function
-#define FFT_N 256 // set to 256 point fft
+#define FFT_N 64 // set to 256 point fft
 
 #include <FFT.h>  // include the library
 //
@@ -83,6 +83,14 @@ boolean usedVisited = 0;
 #define SENSOR0_PIN 3 // right
 #define SENSOR1_PIN 2 // left
 
+#define turnDelay 220 // amount to delay before turn
+#define secondTurnDelay 80
+#define UturnDelay 80 // amount to delay between left turns 
+#define straightSpeed 25
+#define turnSpeed 25
+#define correctSpeedFast 25
+#define correctSpeedSlow 5
+
 Servo myServo0;
 Servo myServo1;
 // These variables are marked 'volatile' to inform the compiler that they can change
@@ -97,14 +105,15 @@ volatile int s1_read;
 
 static const int thresh0 = 600; // threshold for sensor 0
 static const int thresh1 = 600; // threshold for sensor 1
-static const int thresh_wall_f = 150; 
-static const int thresh_wall_r = 150; 
-static const int thresh_wall_l = 150; 
+static const int thresh_wall_f = 130; 
+static const int thresh_wall_r = 140; 
+static const int thresh_wall_l = 140; 
+static const int thresh_ir = 125;
 
 static const String dir[4] = {"east","north","west","south"};
 volatile static int orientation;  
 volatile static int x_pos, y_pos;
-
+//volatile static int intersectionCnt = 0;
 
 //Code for the QRE1113 Digital board
 //Outputs via the serial terminal – Lower numbers mean more reflected
@@ -144,26 +153,26 @@ void stopMoving() {
 
 // go straight
 void goStraight() {
-  move_cw(myServo0, 20);
-  move_ccw(myServo1, 20);
+  move_cw(myServo0, straightSpeed);
+  move_ccw(myServo1, straightSpeed);
 }
 
 void corLeft() {
-  move_cw(myServo0, 15);
-  move_ccw(myServo1, 10);
+  move_cw(myServo0, correctSpeedFast);
+  move_ccw(myServo1, correctSpeedSlow);
 }
 
 void corRight() {
-  move_cw(myServo0, 10);
-  move_ccw(myServo1, 15);
+  move_cw(myServo0, correctSpeedSlow);
+  move_ccw(myServo1, correctSpeedFast);
 }
 
 /* uses left line sensor to turn until it reaches the next line, and keep going a little longer
  * stops moving before the end. Will do ~90deg at intersection, but 180 if on one line
  */
 void turnLeft() {
-  move_cw(myServo0, 8);
-  move_cw(myServo1, 8);
+  move_cw(myServo0, turnSpeed);
+  move_cw(myServo1, turnSpeed);
   s1_read = readQD(SENSOR1_PIN);
   while(s1_read > thresh1) {
     s1_read = readQD(SENSOR1_PIN);
@@ -173,15 +182,15 @@ void turnLeft() {
     s1_read = readQD(SENSOR1_PIN);
     delay(1);
   }
-  delay(20);
+  delay(secondTurnDelay);
   stopMoving();
 }
 
 // same thing as left using the other sensor
 void turnRight() {
 
-  move_ccw(myServo0, 8);
-  move_ccw(myServo1, 8);
+  move_ccw(myServo0, turnSpeed);
+  move_ccw(myServo1, turnSpeed);
   s0_read = readQD(SENSOR0_PIN);
   while(s0_read > thresh0) {
     s0_read = readQD(SENSOR0_PIN);
@@ -191,7 +200,7 @@ void turnRight() {
     s0_read = readQD(SENSOR0_PIN);
     delay(1);
   }
-  delay(20);
+  delay(secondTurnDelay);
   stopMoving();
 }
 
@@ -210,7 +219,7 @@ boolean checkVisited( int x, int y) {
 
 int ir_fft () {
     ADCSRA = 0xe5; // set the adc to free running mode
-    ADMUX = 0x40; // use adc0
+    ADMUX = 0x42; // use adc0
     //analogRead(0);
     delay(20);
     //delay(1);
@@ -231,41 +240,43 @@ int ir_fft () {
     fft_mag_log(); // take the output of the fft
     //Serial.println(fft_input[41]);
     sei();
-    return fft_log_out[41];
+    return fft_log_out[22];
   }
 
 
 void orient(int xt, int yt, int x, int y) {
   //need to go west
   Serial.println("orient");
+  goStraight();
+  //need to go east
   if(xt > x){
-    if(orientation == 2){/*already oriented properly*/}
-      else if(orientation == 1){turnLeft();}
-      else if(orientation == 0){turnLeft(); turnLeft();}
-      else if(orientation == 3){turnRight();}
-      orientation = 2;
-    }
-    //need to go east
-    else if(xt < x){
-      if(orientation == 2){turnLeft(); turnLeft();}
-      else if(orientation == 1){turnRight();}
-      else if(orientation == 0){/*oriented properly*/}
-      else if(orientation == 3){turnLeft();}
+    if(orientation == 0){/*already oriented properly*/}
+      else if(orientation == 1){delay(turnDelay);turnRight();}
+      else if(orientation == 2){delay(turnDelay);turnLeft(); delay(UturnDelay); turnLeft();}
+      else if(orientation == 3){delay(turnDelay);turnLeft();}
       orientation = 0;
+    }
+    //need to go west
+    else if(xt < x){
+      if(orientation == 0){delay(turnDelay);turnLeft();delay(UturnDelay);  turnLeft();}
+      else if(orientation == 1){delay(turnDelay);turnLeft();}
+      else if(orientation == 0){/*oriented properly*/}
+      else if(orientation == 3){delay(turnDelay);turnRight();}
+      orientation = 2;
     }
     //need to go north
     else if(yt > y){
-      if(orientation == 2){turnRight();}
+      if(orientation == 2){delay(turnDelay);turnRight();}
       else if(orientation == 1){}
-      else if(orientation == 0){turnLeft();}
-      else if(orientation == 3){turnLeft();turnLeft();}
+      else if(orientation == 0){delay(turnDelay);turnLeft();}
+      else if(orientation == 3){delay(turnDelay);turnLeft();delay(UturnDelay); turnLeft();}
       orientation = 1;
     }
     //need to go south
     else if(yt < y){
-      if(orientation == 2){turnLeft();}
-      else if(orientation == 1){turnLeft();turnLeft();}
-      else if(orientation == 0){turnRight();}
+      if(orientation == 2){delay(turnDelay);turnLeft();}
+      else if(orientation == 1){delay(turnDelay);turnLeft();delay(UturnDelay); turnLeft();}
+      else if(orientation == 0){delay(turnDelay);turnRight();}
       else if(orientation == 3){}
       orientation = 3;
     }
@@ -274,6 +285,12 @@ void orient(int xt, int yt, int x, int y) {
 int count;
 
 void setup() {
+  pinMode(4, OUTPUT);
+  pinMode(5,OUTPUT);
+  pinMode(6, OUTPUT);
+  digitalWrite(4, LOW);
+  digitalWrite(5,LOW);
+  digitalWrite(6,LOW);
   
   //
   // Print preamble
@@ -352,6 +369,7 @@ void setup() {
   pinMode(DIST_1, INPUT);
   pinMode(DIST_2, INPUT);
   pinMode(DIST_3, INPUT);
+  pinMode(A2, INPUT);
   orientation = 1;
   x_pos = 0;
   y_pos = 0;
@@ -369,8 +387,8 @@ void setup() {
 
   if ( Serial.available() )
   {
-    char c = toupper(Serial.read());
-    //char c = 'T';
+    //char c = toupper(Serial.read());
+    char c = 'T';
     if ( c == 'T' && role == role_pong_back )
     {
       printf("*** CHANGING TO TRANSMIT ROLE -- PRESS 'R' TO SWITCH BACK\n\r");
@@ -412,50 +430,66 @@ void senddata(unsigned long new_data) {
 }
 
 void loop() {
+  
+  /*move_cw( myServo0, 0);
+  move_cw(myServo1,0);*/
+  
   // These delays are purely for ease of reading.
     while(1) { // reduces jitter
       int wall_data = 0;
 
       count++; // variable 
-      if(count == 20){ ir_fft_val = ir_fft(); count = 0;}
-      while (ir_fft_val > thresh_ir) {
+      int ir_fft_val =0;
+      //if(count == 100){ stopMoving();ir_fft_val = ir_fft(); count = 0;}
+      if (ir_fft_val > thresh_ir) {
         //Serial.println("Robot");
         //digitalWrite(ROBOT_LED, HIGH);
         stopMoving();
-        delay(100);
+        delay(turnDelay);
         turnLeft(); // this will do a 180 if it is between lines
         orientation +=2;
         orientation = orientation%4;
         goStraight();
         ir_fft_val = 0;
       }
+      //goStraight();
           
       s0_read = readQD(SENSOR0_PIN);
       s1_read = readQD(SENSOR1_PIN);
       
       // Thresholding
-      /*Serial.print("Sensor0: ");
+      /*
+      Serial.print("Sensor0: ");
       Serial.print(s0_read);
       Serial.println();
       Serial.print("Sensor1: ");
       Serial.print(s1_read);
       Serial.println();
-      delay(500);*/
-
+      delay(500);
+      */
       
       if(s0_read > thresh0 && s1_read > thresh1) {
+        //intersectionCnt = 0;
         goStraight();
+        digitalWrite(5,LOW);
+        digitalWrite(4,LOW);
+        digitalWrite(6,LOW);
       }
       else if(s0_read < thresh0 && s1_read > thresh1) {
+        //intersectionCnt = 0;
         corRight();
+        
         //Serial.println("Correcting Right");
       }
       else if(s0_read > thresh0 && s1_read < thresh1) {
+        //intersectionCnt = 0;
         corLeft();
+        
    
       }
-      else if(s0_read < thresh0 && s1_read < thresh1){ // at an intersection
-        delay(200);
+      else if(s0_read < thresh0 && s1_read < thresh1  /*intersectionCnt == 0*/){ // at an intersection
+        //delay(200);
+        //intersectionCnt++;
         stopMoving();
        
         //update current position
@@ -503,17 +537,29 @@ void loop() {
           dist_l = dist_l>>4;
           dist_r = dist_r>>4;
           dist_f = dist_f>>4;
-
+          
+          
           Serial.println("Left, Right, Front");
           Serial.println(dist_l);
           Serial.println(dist_r);
           Serial.println(dist_f);
+          
+          if (dist_l > thresh_wall_l) 
+            digitalWrite(4, HIGH);
+          if (dist_f > thresh_wall_f)
+            digitalWrite(5, HIGH);
+          if (dist_r > thresh_wall_r)
+            digitalWrite(6, HIGH);
           
           int r_ind = orientation - 1;
           if(r_ind < 0){
               r_ind = r_ind +4;
             }
             int l_ind = (orientation +1)%4;
+
+           Serial.println("Current position");
+           Serial.println(x_pos);
+           Serial.println(y_pos);
 
           //_________________________________________________________________________________________________
           if(dist_l >= thresh_wall_l){ //if there is wall to left
@@ -530,8 +576,8 @@ void loop() {
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
           //TODO: setup how to add to frontier array 
-          else if(!usedVisited){
-            if(!checkVisited){
+          else /*if(!usedVisited)*/{
+            //if(!checkVisited){
               if(orientation == 0){
                 //add position x_pos , y_pos +1
                 neighbor[nsize][0] = x_pos;
@@ -547,12 +593,15 @@ void loop() {
               else if(orientation == 3){
                 //add position x_pos-1 , y_pos
                 neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;}
-                Serial.println("coordinates to add:");
-                Serial.println(neighbor[nsize][0]);
-                Serial.println(neighbor[nsize][1]);
+                neighbor[nsize][1] = y_pos;
+              }
+                Serial.println("coordinates to add: (");
+                Serial.print(neighbor[nsize][0]);
+                Serial.print(" , ");
+                Serial.print(neighbor[nsize][1]);
+                Serial.print(")");
                 nsize++;
-            }
+            //}
 
             }
         
@@ -575,8 +624,8 @@ void loop() {
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           //TODO: setup how to add to frontier array 
-          else if (!usedVisited){
-            if(!checkVisited){
+          else /*if (!usedVisited)*/{
+            //if(!checkVisited){
               if(orientation == 0){
                 //add position x_pos , y_pos -1
                 neighbor[nsize][0] = x_pos;
@@ -592,12 +641,13 @@ void loop() {
               else if(orientation == 3){
                 //add position x_pos+1 , y_pos
                 neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;}
+                neighbor[nsize][1] = y_pos;
+              }
                 Serial.println("coordinates to add:");
                 Serial.println(neighbor[nsize][0]);
                 Serial.println(neighbor[nsize][1]);
                 nsize++;
-            }
+            //}
               //adjustfrontier();
 
             }
@@ -616,13 +666,14 @@ void loop() {
               wall_data += 2;
             else if(orientation == 3)
               wall_data += 4;
-          }
+          } else {
  
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           //TODO: setup how to add to frontier array 
-          else if(!usedVisited){
-            if(!checkVisited){
+          //else if(!usedVisited){
+            //if(!checkVisited){
+              //digitalWrite(5,HIGH);
               if(orientation == 0){
                 //add position x_pos - 1, y_pos
                 neighbor[nsize][0] = x_pos+1;
@@ -644,16 +695,16 @@ void loop() {
                 Serial.println(neighbor[nsize][0]);
                 Serial.println(neighbor[nsize][1]);
                 nsize++;
-            }
+            //}
+          }
               //adjustfrontier();
-           }
+           //}
             
         
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
           if((abs(x_pos - neighbor[nsize-1][0])+abs(y_pos - neighbor[nsize-1][1])) ==1) {
-                  nsize--;
-                  orient(neighbor[nsize][0],neighbor[nsize][1],x_pos,y_pos); 
+                  orient(neighbor[nsize-1][0],neighbor[nsize-1][1],x_pos,y_pos); 
                   goStraight();
                   usedVisited = 0;
           }

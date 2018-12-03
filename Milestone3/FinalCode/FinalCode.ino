@@ -10,7 +10,7 @@
 //
 
 // Set up nRF24L01 radio on SPI bus plus pins 9 & 10
-
+      
 RF24 radio(9,10);
 
 //Radio pipe addresses for the 2 nodes to communicate.
@@ -91,7 +91,7 @@ volatile int s0_read;
 volatile int s1_read;
 
 
-static const int thresh0 = 600; // threshold for sensor 0
+static const int thresh0 = 500; // threshold for sensor 0
 static const int thresh1 = 600; // threshold for sensor 1
 static const int thresh_wall_f = 150; 
 static const int thresh_wall_r = 150; 
@@ -382,13 +382,13 @@ void loop() {
       s1_read = readQD(SENSOR1_PIN);
       
       // Thresholding
-      /*Serial.print("Sensor0: ");
+      Serial.print("Sensor0: ");
       Serial.print(s0_read);
       Serial.println();
       Serial.print("Sensor1: ");
       Serial.print(s1_read);
       Serial.println();
-      delay(500);*/
+      delay(500);
 
       
       if(s0_read > thresh0 && s1_read > thresh1) {

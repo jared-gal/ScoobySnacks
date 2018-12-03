@@ -204,8 +204,8 @@ boolean checkVisited(int a[81][2], int x, int y) {
 void orient(int xt, int yt, int x, int y) {
   //need to go west
   Serial.println("orient");
-  if(xt > x){
-    if(orientation == 2){/*already oriented properly*/}
+    if(xt > x){
+      if(orientation == 2){/*already oriented properly*/}
       else if(orientation == 1){turnLeft();}
       else if(orientation == 0){turnRight(); turnRight();}
       else if(orientation == 3){turnRight();}
