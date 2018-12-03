@@ -10,7 +10,7 @@
   */
 
 #define LOG_OUT 1 // use the log output function
-#define FFT_N 256 // set to 256 point fft
+#define FFT_N 64 // set to 256 point fft
 
 #include <FFT.h>  // include the library
 
@@ -41,7 +41,7 @@ volatile int count = 0; // counts num loops to make fft happen less often
 static const int thresh0 = 500; // threshold for sensor 0
 static const int thresh1 = 200; // threshold for sensor 1
 static const int thresh_wall = 120; 
-static const int thresh_ir = 80;
+static const int thresh_ir = 125;
 volatile int ir_fft_val;
 
 volatile static int state = 0;
@@ -181,6 +181,7 @@ int ir_fft () {
     fft_input[i] = k; // put real data into even bins
     fft_input[i+1] = 0; // set odd bins to 0
   }
+  //Serial.println("didn't break yet");
   fft_window(); // window the data for better frequency response
   fft_reorder(); // reorder the data before doing the fft
   fft_run(); // process the data in the fft
@@ -189,7 +190,8 @@ int ir_fft () {
   //Serial.println("start");
   for (byte i = 0 ; i < FFT_N/2 ; i++) { 
     //Serial.println(fft_log_out[i]); // send out the data
-    if (i == 41) {
+    if (i == 22) {
+      //Serial.println(fft_log_out[i]);
       return fft_log_out[i];
     }
   }
@@ -207,7 +209,7 @@ void detect_660 () {
     fft_run(); // process the data in the fft
     fft_mag_log(); // take the output of the fft
     sei();
-    //Serial.println(".....");
+    Serial.println(".....");
     if(stateMachine(fft_log_out[20])){    
       //Serial.println("660Hz present"); // send out the data
       detectedTone = 1;
@@ -236,7 +238,8 @@ void setup() {
   valid = 0;
   state = 0;
   detectedTone = 0;
-//  Serial.begin(9600);
+  Serial.begin(9600);
+  Serial.println("getting warmed up");
 }
 
 signed int adc_read() {
@@ -255,8 +258,10 @@ void loop() {
   while(1) { // reduces jitter
     //cli();  // UDRE interrupt slows this way down on arduino1.0
   count++; // variable 
+  //Serial.println("right before if_fft() call");
   if(count == 20){ ir_fft_val = ir_fft(); count = 0;}
   while (ir_fft_val > thresh_ir) {
+    Serial.println("bot detected");
     digitalWrite(ROBOT_LED, HIGH);
     stopMoving();
     delay(100);
