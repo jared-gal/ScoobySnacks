@@ -86,7 +86,7 @@ boolean usedVisited = 0;
 #define START_PIN 6 // start button
 
 #define turnDelay 220 // amount to delay before turn
-#define secondTurnDelay 80
+#define secondTurnDelay 100
 #define UturnDelay 80 // amount to delay between left turns 
 #define straightSpeed 25
 #define turnSpeed 25
@@ -108,8 +108,8 @@ volatile int s1_read;
 static const int thresh0 = 600; // threshold for sensor 0
 static const int thresh1 = 600; // threshold for sensor 1
 static const int thresh_wall_f = 110; 
-static const int thresh_wall_r = 140; 
-static const int thresh_wall_l = 140; 
+static const int thresh_wall_r = 120; 
+static const int thresh_wall_l = 120; 
 static const int thresh_ir = 125;
 
 static const String dir[4] = {"east","north","west","south"};
