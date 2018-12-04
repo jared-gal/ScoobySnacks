@@ -22,6 +22,7 @@ static int x_start;
 static int y_start;
 static int x_target;
 static int y_target;
+boolean started = false;
 
 //
 // Role management
@@ -82,6 +83,7 @@ boolean usedVisited = 0;
 
 #define SENSOR0_PIN 3 // right
 #define SENSOR1_PIN 2 // left
+#define START_PIN 6 // start button
 
 #define turnDelay 220 // amount to delay before turn
 #define secondTurnDelay 80
@@ -105,7 +107,7 @@ volatile int s1_read;
 
 static const int thresh0 = 600; // threshold for sensor 0
 static const int thresh1 = 600; // threshold for sensor 1
-static const int thresh_wall_f = 130; 
+static const int thresh_wall_f = 110; 
 static const int thresh_wall_r = 140; 
 static const int thresh_wall_l = 140; 
 static const int thresh_ir = 125;
@@ -113,6 +115,7 @@ static const int thresh_ir = 125;
 static const String dir[4] = {"east","north","west","south"};
 volatile static int orientation;  
 volatile static int x_pos, y_pos;
+volatile static int x_add, y_add;
 volatile static int wall_data = 0;
 //volatile static int intersectionCnt = 0;
 
@@ -221,23 +224,23 @@ void goLeft(int dist_l, int l_ind) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~         
           //TODO: setup how to add to frontier array 
           else /*if(!usedVisited)*/{
-            //if(!checkVisited){
+           // if(!checkVisited){
               if(orientation == 0){
                 //add position x_pos , y_pos +1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos+1;}
+                x_add = x_pos;
+                y_add = y_pos+1;}
               else if(orientation == 1){
                //add position x_pos +1 , y_pos
-                neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;}
+                x_add = x_pos-1;
+                y_add = y_pos;}
               else if(orientation == 2){
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos-1;}
+                x_add = x_pos;
+                y_add = y_pos-1;}
                 //add position x_pos , y_pos-1
               else if(orientation == 3){
                 //add position x_pos-1 , y_pos
-                neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;
+                x_add = x_pos+1;
+                y_add = y_pos;
               }
                 /*
                  
@@ -247,7 +250,12 @@ void goLeft(int dist_l, int l_ind) {
                 Serial.print(neighbor[nsize][1]);
                 Serial.print(")");
                 */
-                nsize++;
+                if(!checkVisited(x_add, y_add)) {
+                  neighbor[nsize][0] = x_add;
+                  neighbor[nsize][1] = y_add;
+                  nsize++;
+                }
+               
             //}
 
             }
@@ -274,27 +282,32 @@ void goRight(int dist_r, int r_ind) {
             //if(!checkVisited){
               if(orientation == 0){
                 //add position x_pos , y_pos -1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos-1;}
+                x_add = x_pos;
+                y_add = y_pos-1;}
               else if(orientation == 1){
                 //add position x_pos -1 , y_pos
-                neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;}
+                x_add = x_pos+1;
+                y_add = y_pos;}
               else if(orientation == 2){
                 //add position x_pos , y_pos+1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos+1;}
+                x_add = x_pos;
+                y_add = y_pos+1;}
               else if(orientation == 3){
                 //add position x_pos+1 , y_pos
-                neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;
+                x_add = x_pos-1;
+                y_add = y_pos;
               }
               /*
                 Serial.println("coordinates to add:");
                 Serial.println(neighbor[nsize][0]);
                 Serial.println(neighbor[nsize][1]);
                 */
-                nsize++;
+                if(!checkVisited(x_add, y_add)) {
+                  neighbor[nsize][0] = x_add;
+                  neighbor[nsize][1] = y_add;
+                  nsize++;
+                }
+                
             //}
               //adjustfrontier();
 
@@ -322,27 +335,32 @@ void goForward(int dist_f) {
               //digitalWrite(5,HIGH);
               if(orientation == 0){
                 //add position x_pos - 1, y_pos
-                neighbor[nsize][0] = x_pos+1;
-                neighbor[nsize][1] = y_pos;
+                x_add = x_pos+1;
+                y_add = y_pos;
                } else if(orientation == 1){
                //add position x_pos , y_pos+1
-               neighbor[nsize][0] = x_pos;
-               neighbor[nsize][1] = y_pos+1;
+               x_add = x_pos;
+               y_add = y_pos+1;
               } else if(orientation == 2){
                 //add position x_pos + 1, y_pos
-                neighbor[nsize][0] = x_pos-1;
-                neighbor[nsize][1] = y_pos;
+                x_add = x_pos-1;
+                y_add = y_pos;
               } else if(orientation == 3){
                 //add position x_pos , y_pos-1
-                neighbor[nsize][0] = x_pos;
-                neighbor[nsize][1] = y_pos-1;
+                x_add = x_pos;
+                y_add = y_pos-1;
               }
               /*
                 Serial.println("coordinates to add:");
                 Serial.println(neighbor[nsize][0]);
                 Serial.println(neighbor[nsize][1]);
                 */
-                nsize++;
+                if(!checkVisited(x_add, y_add)) {
+                  neighbor[nsize][0] = x_add;
+                  neighbor[nsize][1] = y_add;
+                  nsize++;
+                }
+                
             //}
           }
 }
@@ -350,7 +368,7 @@ void goForward(int dist_f) {
 boolean checkVisited( int x, int y) {
   boolean answer = false;
   for(int i = 0; i < 81; i++) {
-    if(fullVisited[i][0] == x && fullVisited[i][1] == y) {
+    if(visited[i][0] == x && visited[i][1] == y) {
       answer = true;
     }
   }
@@ -573,12 +591,18 @@ void senddata(unsigned long new_data) {
 }
 
 void loop() {
-  
+  static int x_targ = 0;
+  static int y_targ = 0;
   /*move_cw( myServo0, 0);
   move_cw(myServo1,0);*/
   
   // These delays are purely for ease of reading.
     while(1) { // reduces jitter
+
+      while(!started) {
+        if(digitalRead(START_PIN) == HIGH)
+          started = 1;
+      }
       
 
       count++; // variable 
@@ -608,8 +632,8 @@ void loop() {
       Serial.print("Sensor1: ");
       Serial.print(s1_read);
       Serial.println();
-      delay(500);
-      */
+      delay(500);*/
+      
       
       if(s0_read > thresh0 && s1_read > thresh1) {
         //intersectionCnt = 0;
@@ -635,6 +659,7 @@ void loop() {
         //intersectionCnt++;
         stopMoving();
          wall_data = 0;
+         
         //update current position
         if(orientation == 0)
           x_pos = x_pos + 1;
@@ -645,11 +670,12 @@ void loop() {
         else if(orientation == 3)
           y_pos = y_pos -1;
         // add current position to visited
-        if(!usedVisited){
+        if(!checkVisited(x_pos,y_pos)){
           visited[vissize][0] = x_pos;
           visited[vissize][1] = y_pos;
           vissize++;
         }
+        
           int dist_f;
           int dist_r;
           int dist_l;
@@ -681,18 +707,18 @@ void loop() {
           dist_r = dist_r>>4;
           dist_f = dist_f>>4;
           
-          /*
+          
           Serial.println("Left, Right, Front");
           Serial.println(dist_l);
           Serial.println(dist_r);
           Serial.println(dist_f);
-          */
-          if (dist_l > thresh_wall_l) 
-            digitalWrite(4, HIGH);
-          if (dist_f > thresh_wall_f)
-            digitalWrite(5, HIGH);
-          if (dist_r > thresh_wall_r)
-            digitalWrite(6, HIGH);
+          
+//          if (dist_l > thresh_wall_l) 
+//            digitalWrite(4, HIGH);
+//          if (dist_f > thresh_wall_f)
+//            digitalWrite(5, HIGH);
+//          if (dist_r > thresh_wall_r)
+//            digitalWrite(6, HIGH);
           
           int r_ind = orientation - 1;
           if(r_ind < 0){
@@ -706,22 +732,22 @@ void loop() {
 */
           //_________________________________________________________________________________________________
 
-        if (count % 3 == 0){
+        //if (count % 3 == 0){
           goLeft(dist_l, l_ind);
           goRight(dist_r, r_ind);
           goForward(dist_f);
-        }
-        else if (count % 3 == 1) {
-          goForward(dist_f);
-          goLeft(dist_l, l_ind);
-          goRight(dist_r, r_ind);
-        }
-        else {
-          goForward(dist_f);
-          goLeft(dist_l, l_ind);
-          goRight(dist_r, r_ind);
-          
-        }
+//        }
+//        else if (count % 3 == 1) {
+//          goForward(dist_f);
+//          goLeft(dist_l, l_ind);
+//          goRight(dist_r, r_ind);
+//        }
+//        else {
+//          goForward(dist_f);
+//          goLeft(dist_l, l_ind);
+//          goRight(dist_r, r_ind);
+//          
+        
 
               //adjustfrontier();
            //}
@@ -730,34 +756,40 @@ void loop() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
           if((abs(x_pos - neighbor[nsize-1][0])+abs(y_pos - neighbor[nsize-1][1])) ==1) {
-                  orient(neighbor[nsize-1][0],neighbor[nsize-1][1],x_pos,y_pos); 
+                  orient(neighbor[nsize-1][0],neighbor[nsize-1][1],x_pos,y_pos);
+                  x_targ = neighbor[nsize-1][0];
+                  y_targ = neighbor[nsize-1][1];
+                  nsize--; 
                   goStraight();
                   usedVisited = 0;
           }
           else{
             orient(visited[vissize-2][0], visited[vissize-2][1], x_pos, y_pos);
+            x_targ = visited[vissize-2][0];
+            y_targ= visited[vissize-2][1];
+        
             goStraight();
             vissize--;
             usedVisited = 1;
             }
           
           delay(40);
-          Serial.println(x_pos);
-          unsigned long t_data = ((x_pos)<<8) | ((y_pos)<<5) | wall_data;
+          //Serial.println(x_pos);
+          unsigned long t_data = (abs(x_pos)<<8) | (abs(y_pos)<<5) | wall_data;
           senddata(t_data);
 
 //_________________________________________________________________________________________________
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/*
+
      Serial.print("target:  ");
-     Serial.print(neighbor[nsize][0]);
-     Serial.println(neighbor[(nsize)][1]);
+     Serial.print(x_targ);
+     Serial.println(y_targ);
 //
 //     
      Serial.print("current:  ");
-     Serial.print(visited[(vissize-1)][0]);
-     Serial.println(visited[(vissize-1)][1]);
-*/
+     Serial.print(x_pos);
+     Serial.println(y_pos);
+
       }
     }
 }
