@@ -74,28 +74,48 @@
                 <p> The following is a detailing of the final design of the robot that competed in the Robotics Day 2018 Competition.</p>
                 
                 <p> <b><big>Hardware:</big></b></p>
+                
                  <p> <b>Line Sensors:</b></p>
-                 <p> <b>IR Sensors for Wall Detection:</b></p>
-                 <p> <b>IR Hat:</b></p>
+                <p>While the line following is fairly decent, it sometimes corrects too far or causes the robot to move in an awkward fashion. It also sometimes causes the robot to mess up while turning off an intersection due to it being off-center. This is mostly due to the large space between the line sensors. A potential fix would be to either put the sensors closer or to have a third line sensor in the middle. We could have also properly implemented PID control if we had the time.</p>
+                 
+                <p> <b>IR Sensors for Wall Detection:</b></p>
+                <p>Our wall sensors often worked, but sometimes the robot obviously would crash into walls. The wall detection code is based off set thresholds, but our searching algorithm can sometimes clash with the wall detection, and the robot decides that it should move towards an unvisited node behind a wall anyway.</p>
+                
                  <p> <b>Microphone:</b></p>
+                <p>The final robot has never started without an actual button press. An simple resistor and button circuit is used to trigger a start as the pin state transfers from high to low. After the lab involving creating the 660 Hz tone detection, the circuit was proto-boarded. After this transfer of circuitry, its functionality was destroyed and was inaccurate and unreliable.</p>
+                
                  <p> <b>IR Detection:</b></p>
-                 <p> <b>Arduino:</b></p>
+                <p> The IR Detection of the robot was a protoboarded version of the result of Lab2. The circuit was able to take up a very small amount of space on the robot as it was shrunk to a 4cmx4cm circuit.</p>
+                
                  <p> <b>Servos:</b></p>
+                <p>Two days before the competition, our right turns stopped being in place because one of the servos stopped responding to the command to spin counterclockwise, so we changed all of our U-Turns to be based on the left turn rather than the right turn. This suggests that the servos are among the weakest links on the robot.</p>
+                
                  <p> <b>Protoboard:</b></p>
+                <p>An additional simplification made for the wiring of our robot was to create a power ground protoboard. The board had two long rails for both power and ground connections at a difference of 5V. The protoboard allowed for a simplified wiring of the entire device and allowed the wires to remain quite short overall.</p>
                 
                 <div align = "middle"><img  src="img/colorBar.png" alt=""></div>
                 <div align = "middle"><p><small><i>Color Bar Displayed on Screen</i></small></p></div>
                 
                 <p> <b><big>Software:</big></b></p>
+                
                 <p> <b>Line Following:</b></p>
+                <p></p>
+                
                  <p> <b>Wall Detection:</b></p>
+                <p></p>
+                
                  <p> <b>Search Algorithm:</b></p>
+                <p></p>
+                
                  <p> <b>Sending Maze Information:</b></p>
+                <p></p>
+                
                  <p> <b>GUI:</b></p>
+                <p></p>
                 
                 <p> <b><big>Unincluded Components:</big></b></p>
-                <p> <b>FPGA:</b></p>
-                 <p> <b>Camera:</b></p>
+                <p> <b>FPGA and Camera:</b></p>
+                <p></p>
                 
                 <p> <b><big>Future Improvement:</big></b></p>
                 <p> </p>
