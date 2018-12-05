@@ -52,6 +52,9 @@
             <li class="nav-item active px-lg-4">
               <a class="nav-link text-uppercase text-expanded" href="milestones.html">Milestones</a>
             </li>
+            <li class="nav-item active px-lg-4">
+              <a class="nav-link text-uppercase text-expanded" href="finalDesign.html">Final Design</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -63,59 +66,44 @@
           <div class="col-xl-9 mx-auto">
             <div class="cta-inner text-center rounded">
               <h2 class="section-heading mb-5">
-                <span class="section-heading-upper">Lab Report 4</span>
+                <span class="section-heading-upper">Final Robot Design</span>
               </h2>
               <p> <i>David Pirogovsky, Dylan Neal, Jared Gallina, Larry Tang</i> </p>
               <div id = "content" align = "left">
                 <p> <b> <big>Intro:</big></b> </p>
-                <p>The goal of this lab was to create a treasure detection method by using a camera with an FPGA to determine the presence, shape, and color of treasures. These determined results were then to be processed by the Arduino to relay the presence of a treasure and information about it.</p>
-                <p> <b> <big>FPGA Work</big></b> </p>
-                <p> <b> Phase Locked Loop:</b></p>
-                <p> The first necessary step in this lab was to create a phase-locked loop to generate a 50 MHz clock for the RAM, a 25 MHz clock for the VGA, and a 24 MHz clock for the camera. This was done following the instructions on the lab handout, and found in Quartus in Tools > IP Catalog. </p>
-                 <p> <b> Displaying an M9K Block:</b></p>
-                <p>In order to display these blocks on the screen, we used a large if-else block with three vertical checks and eight horizontal checks, since there are three color options and two of the colors have eight settings. The first row increments the value of the red color by one as the x value grows, the second row increments the red and green colors together, and the last row increments red and green together, and increments the blue color every other block. </p>
+                <p> The following is a detailing of the final design of the robot that competed in the Robotics Day 2018 Competition.</p>
                 
                 <div align = "middle"><img  src="img/m9kBlock.png" alt=""></div>
                 <div align = "middle"><p><small><i>M9K Block Displayed on Screen</i></small></p></div>
                 
-                <p> <b>Color Bar and Live Camera:</b></p>
-                <p> The camera sends the information for a pixel in two bytes in two clock cycles, so we first read both bytes, then sent the data into the downsampler using a data valid bit. The downsampler sets the write enable for the M9K block so that only valid, downsampled data is written, and the HREF line coming out of the camera is used to synchronize the x address of the pixels and when to increment the y address.  The y address is only incremented when the HREF signal marks the end of a row of pixels, and the x address is incremented every 2 PCLK cycles and is reset at the end of each row.  VSYNC is used to reset both x address and y address at the end of an image frame.  </p>
+                <p> <b><big>Hardware:</big></b></p>
+                 <p> <b>Line Sensors:</b></p>
+                 <p> <b>IR Sensors for Wall Detection:</b></p>
+                 <p> <b>IR Hat:</b></p>
+                 <p> <b>Microphone:</b></p>
+                 <p> <b>IR Detection:</b></p>
+                 <p> <b>Arduino:</b></p>
+                 <p> <b>Servos:</b></p>
+                 <p> <b>Protoboard:</b></p>
                 
                 <div align = "middle"><img  src="img/colorBar.png" alt=""></div>
                 <div align = "middle"><p><small><i>Color Bar Displayed on Screen</i></small></p></div>
                 
-                <p> <b>Treasure Detection:</b></p>
-                <p> The image processor takes in one pixel at a time and determines what the primary color component of that pixel is, and if the primary color component is greater than a set threshold, it will increment a counter for that color. At VSYNC, the counters will be evaluated, and if one color predominates and is greater than a hardcoded threshold, the result will be set to a value corresponding to a color. Using ternary operators, we output on two pins if the color is red or blue and if a treasure is detected or not. Unfortunately, our image processor incorrectly detects treasure, periodically (watch video above). It is much better at detecting colors when there is an actual treasure present, as the GPIO pin is more consistently high with the red treasure in front of the camera. Team arduino will have to use some correction method to correctly detect treasures. </p>
+                <p> <b><big>Software:</big></b></p>
+                <p> <b>Line Following:</b></p>
+                 <p> <b>Wall Detection:</b></p>
+                 <p> <b>Search Algorithm:</b></p>
+                 <p> <b>Sending Maze Information:</b></p>
+                 <p> <b>GUI:</b></p>
                 
-                <p> <b> <big>Arduino:</big></b> </p>
-                <p> <b>Writing the Camera Registers:</b></p>
-                <p>The Arduino side of this lab began with establishing communications to the OV7670 camera module. The means of communication was via I2C, that was connected between the two components as depicted below. 
-                </p>
-                
-                <div align = "middle"><img  src="img/arduinoBlock.png" alt=""></div>
-                <div align = "middle"><p><small><i>Arduino to Camera Wiring</i></small></p></div>
-                
-                <p>Once the communications channel was established, the task at hand was to write the appropriate registers on the OV7670 platform to allow for the camera bar testing. After reviewing the datasheet the following register writing was determined to be appropriate.</p>
-                
-                <div align = "middle"><img  src="img/cameraRegisterWrites.png" alt=""></div>
-                <div align = "middle"><p><small><i>Registers Written on Left and Values on Right </i></small></p></div>
-                
-                <p>Once we had the values and destination, the Arduino needed to actually write these to the camera. The means of register writing was to call one of the provided functions with the register address and desired value:  In order to ensure that the correct values were written to each register, the values are first read at the beginning of operation and displayed on the serial terminal, and then read at the end of operation and displayed on the same terminal. The results of the writing as displayed on the serial terminal can be seen in the following image, exhibiting that each register was updated to the correct values intended by our implementation.</p>
+                <p> <b><big>Unincluded Components:</big></b></p>
+                <p> <b>FPGA:</b></p>
+                 <p> <b>Camera:</b></p>
                 
                 
-                <div align = "middle"><img  src="img/serialTerm.jpg" alt=""></div>
-                <div align = "middle"><p><small><i>Registers Written on Left and Values on Right </i></small></p></div>
+               <p> <b>Final Remarks:</b></p>
+                <p> </p>
                 
-                <p> <b>FPGA Communication:</b></p>
-                <p> The final aspect of implementation was to create a communication protocol between the Arduino and the FPGA. The general outline of the protocol we developed was a simplistic 5 line parallel communication, one for whether or not a shape was detected (1), one for each shape (4 total), and one for if the color is red or not (5 total) . However, for the lab only two of the lines were necessary: treasure presence and color determination. The FPGA’s pins for these outputs were then wired to two digital pins on the Arduino. Due to random noise, the read could not be done a single time as there was a chance that the read value would be erroneous, thus a different measurement method was devised. Each pin would be read one thousand times, and if the read value was high for greater than 500 of those reads, it was returned as high (nonzero). If not then it was returned as low (0). The function that implemented this can be seen below.</p>
-                
-                
-                <div align = "middle"><img  src="img/dutyCycleRead.png" alt=""></div>
-                <div align = "middle"><p><small><i>Duty Cycle Read for Treasure Detection</i></small></p></div>
-                         
-               <p> <b>Final Demonstration:</b></p>
-                <p> The final demonstration of treasure detection by the Arduino was accomplished using two LEDs. A green LED was lit up when a blue treasure was detected (the color mismatch was due to the lab not having any blue LEDs), a red LED is flashed when a red treasure is detected, and finally no LED is lit when there is no treasure detected. The results of the test can be seen in the following video. </p>
-                <div style="position:relative;height:0;padding-bottom:75.0%"><iframe src="https://www.youtube.com/embed/D4qdAHJ7XUc?ecver=2" width="480" height="360" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" style="position:absolute;width:100%;height:100%;left:0" allowfullscreen></iframe></div>
                 <div align = "middle"><p><small><i>Treasure Detection Video</i></small></p></div>
                 
               
