@@ -99,19 +99,22 @@
                 <p> <b><big>Software:</big></b></p>
                 
                 <p> <b>Line Following:</b></p>
-                <p></p>
+                <p>Our line sensors are mildly sensitive to differences in lighting, and only one sample is read every decision, but the loop only consists of a short three branch if else block, with ir detection happening every 20th time through the loop. This allows incorrect readings to quickly be corrected, and prevents the robot detection from interfering with line following stability. When an intersection is detected, the robot stops before reading the wall sensors and making a decision for the next square to explore, then continues through the loop.</p>
                 
                  <p> <b>Wall Detection:</b></p>
-                <p></p>
+                <p>Our wall sensors average 16 readings before making a decision, and the robot stops before making those readings, so given properly aligned walls, the robot detects walls very robustly. Due to not wanting to detect phantom walls, the thresholds are set not to detect farther than approximately 3/4s of a square away, and sometimes will miss a wall that is poorly placed. </p>
+                
+                <p> <b>Robot Detection:</b></p>
+                <p>The IR detection worked most of the time, and we were able to reduce the memory space taken up by the FFT by reducing the number of samples actually taken, as well as decreasing the total time to run the FFT by only sampling the values that were relevant for detecting robots. Improvements could come from trying to optimize the number of samples taken to balance memory space with robot detection.</p>
                 
                  <p> <b>Search Algorithm:</b></p>
-                <p></p>
+                <p>The current implementation of the search algorithm uses a neighbor array and visited array to keep track of nodes it should visit and nodes it has already visit. Everytime we hit an intersection, we check if there are walls to the front, left , or right.  We then add to the neighbor array based on which direction does not contain a wall, and we just store the x and y coordinates to visit. We also store the x and y coordinates of the nodes that we have visited. The algorithm chooses to continue to a neighbor that is within one square of the robot’s current position. If there is no neighbor within the one square proximity, then we move to the visited array to backtrack to a previously visited node.  From there, we ensure that we don’t re add nodes to the neighbor array by checking if had visited the node before.  Finally, we can check for a neighbor again and the robot continues from there. This search algorithm has worked on the nine by nine mazes and also functions exceptionally well on smaller 5 by 4 maes. It has shown the ability to avoid nodes that we have visited before and move towards nodes in the neighbor array, but needs more robustness to incorrect wall detections. </p>
                 
                  <p> <b>Sending Maze Information:</b></p>
-                <p></p>
+                <p>Our transmission data was an unsigned long that consisted of an x coordinate, y coordinate, and wall data that would tell us which walls were present. Before the competition we found that the x coordinate was often calculated as a negative number depending on which corner in the maze we started. (If we started in the right corner and went left, the x-coordinates would be calculated to be negative.  We did a quick fix by simply calling the absolute value of the x coordinate. A more robust improvement we could have made was to calculate the x coordinate correctly with positive numbers. Furthermore, the data bits we send do not send anything about treasure due to our camera and FPGA not correctly functioning. If it did, the obvious improvement would be to add bits to represent that data.</p>
                 
                  <p> <b>GUI:</b></p>
-                <p></p>
+                <p>One bug with our GUI is that it works optimally when we begin in a different orientation than we were required to begin in the competition. This made the GUI a little messier than it needed to be in that walls that were otherwise correctly detected were flipped. Another issue was that even when it was in its optimal orientation it sometimes created phantom walls behind it. This could be due to either a bug we didn’t see or because our wall detectors were a little too sensitive.  The receiver initially had an issue with the 3.3 V pin on the Arduino because the signal was too noisy, but this was fixed by placing a large capacitor between the 3.3 V pin and ground.  We could then avoid using the voltage regulator.</p>
                 
                 <p> <b><big>Unincluded Components:</big></b></p>
                 <p> <b>FPGA and Camera:</b></p>
